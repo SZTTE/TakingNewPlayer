@@ -55,6 +55,7 @@
   <ItemGroup>
      <Compile Include="Assets\Script\Factory.cs" />
      <Compile Include="Assets\Script\GameManager.cs" />
+     <Compile Include="Assets\Script\Link.cs" />
      <Compile Include="Assets\Script\Node.cs" />
  <Reference Include="Unity.DocZh.Editor">
  <HintPath>C:/_MK/GameDPM/2020招新/LevelPlayer/Library/ScriptAssemblies/Unity.DocZh.Editor.dll</HintPath>

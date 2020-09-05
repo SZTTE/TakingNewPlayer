@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
     <e p="C:\_MK\GameDPM\2020招新\LevelPlayer" t="IncludeRecursive">
@@ -7,6 +7,7 @@
         <e p="Script" t="Include">
           <e p="Factory.cs" t="Include" />
           <e p="GameManager.cs" t="Include" />
+          <e p="Link.cs" t="Include" />
           <e p="Node.cs" t="Include" />
         </e>
       </e>
