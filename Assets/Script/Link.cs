@@ -5,7 +5,8 @@ namespace Assets.Script
     public class Link : MonoBehaviour
     {
         private LineRenderer _lineRenderer;
-
+        private Node _endPoint1;
+        private Node _endPoint2;
         public LineRenderer LineRenderer
         {
             get
@@ -14,21 +15,6 @@ namespace Assets.Script
                 return _lineRenderer;
             }
         }
-
-        private Node _endPoint1;
-        private Node _endPoint2;
-        // Start is called before the first frame update
-        void Start()
-        {
-            
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        
-        }
-
         public Node EndPoint1
         {
             get=>_endPoint1;
@@ -38,7 +24,6 @@ namespace Assets.Script
                 LineRenderer.SetPosition(0, _endPoint1.Position);
             }
         }
-
         public Node EndPoint2
         {
             get=>_endPoint2;
@@ -48,5 +33,7 @@ namespace Assets.Script
                 LineRenderer.SetPosition(1, _endPoint2.Position);
             }
         }
+
+        public float Distance { get=>Vector2.Distance(EndPoint1.Position,EndPoint2.Position); }
     }
 }

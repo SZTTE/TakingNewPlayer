@@ -30,6 +30,13 @@ namespace Assets.Script
             GameObject link = GameObject.Instantiate(_link);
             return link.GetComponent<Link>();
         }
+        public static Link CreatLink(Node node1,Node node2)
+        {
+            Link l = CreatLink();
+            l.EndPoint1 = node1;
+            l.EndPoint2 = node2;
+            return l;
+        }
 
         public static Enemy CreatEnemy(RoutePosition routePosition)
         {
