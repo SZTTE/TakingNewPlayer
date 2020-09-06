@@ -6,11 +6,13 @@ namespace Assets.Script
     {
         private static GameObject _node;
         private static GameObject _link;
+        private static GameObject _enemy;
 
         public static void Init()
         {
             _node = Resources.Load<GameObject>("Prefab/Node");
             _link = Resources.Load<GameObject>("Prefab/Link");
+            _enemy = Resources.Load<GameObject>("Prefab/Enemy");
             Debug.Log(_node);
         }
 
@@ -27,6 +29,15 @@ namespace Assets.Script
             if (_link == null) Init();
             GameObject link = GameObject.Instantiate(_link);
             return link.GetComponent<Link>();
+        }
+
+        public static Enemy CreatEnemy(RoutePosition routePosition)
+        {
+            if(_enemy == null) Init();
+            GameObject enemy = GameObject.Instantiate(_enemy);
+            Enemy script =  enemy.GetComponent<Enemy>();
+            script.Position = routePosition;
+            return script;
         }
     }
 }

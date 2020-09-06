@@ -15,7 +15,8 @@ namespace Assets.Script
             link.EndPoint1 = node1;
             link.EndPoint2 = node2;
             
-            Debug.Log(link.EndPoint1.Position);
+            var position = new RoutePosition(link,node2,2);
+            var enemy = Factory.CreatEnemy(position);
         }
 
         // Update is called once per frame
