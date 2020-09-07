@@ -6,7 +6,7 @@ namespace Assets.Script
     public class GameManager : MonoBehaviour
     {
         public static List<Link> LinkList { get; private set; }
-
+        private Enemy _e;
         void Start()
         {
             Node begin = Factory.CreatNode(new Vector2(-6.44f, 2.91f));
@@ -25,14 +25,15 @@ namespace Assets.Script
                 Factory.CreatLink(node1,node2),
                 Factory.CreatLink(node0,end)
             };
-/*            var position = new RoutePosition(link,node2,2);
-            var enemy = Factory.CreatEnemy(position);*/
+            
+            RoutePosition r = new RoutePosition(LinkList[0],node0,0);
+            _e = Factory.CreatEnemy(r);
         }
 
         // Update is called once per frame
         void Update()
         {
-        
+            _e.MoveForward();
         }
 
         public static List<Link> SearchLinks(Node node)

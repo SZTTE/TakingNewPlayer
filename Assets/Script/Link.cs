@@ -34,6 +34,12 @@ namespace Assets.Script
             }
         }
 
+        public Node GetNodeBeside(Node n)
+        {
+            if (_endPoint1 == n) return _endPoint2;
+            return _endPoint1;
+        }
+
         public float Distance { get=>Vector2.Distance(EndPoint1.Position,EndPoint2.Position); }
     }
 }
