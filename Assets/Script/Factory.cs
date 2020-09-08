@@ -13,7 +13,6 @@ namespace Assets.Script
             _node = Resources.Load<GameObject>("Prefab/Node");
             _link = Resources.Load<GameObject>("Prefab/Link");
             _enemy = Resources.Load<GameObject>("Prefab/Enemy");
-            Debug.Log(_node);
         }
 
         public static Node CreatNode(Vector2 position)

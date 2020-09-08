@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
@@ -12,7 +12,10 @@ namespace Assets.Script
         private GameObject _smallPic;
         private GameObject _bigPic;
         private RoutePosition _routePosition;
-        private float _moveDistance = 0.02f;
+        private float _moveDistance = 0.01f;
+        public static float BigSize { get; } = 0.43f;
+        public static float SmallSize { get; } = 0.25f;
+
         private GameObject SmallPic 
         {
             get
@@ -42,15 +45,22 @@ namespace Assets.Script
                 Vector2 to = _routePosition.To.Position;
                 Vector2 from = Position.Link.GetNodeBeside(Position.To).Position;
                 Vector2 delta = to - from;
-                Debug.Log("from = "+from+",to = "+to);
                 if (_routePosition.Distance > delta.magnitude) Debug.LogError("有一个敌人被设置了错误的位置：距连接开头的距离大于连接的距离");
                 transform.position = from + delta.normalized * _routePosition.Distance;
                 
                 //设置朝向
-                transform.rotation = UnityEngine.Quaternion.AngleAxis(Mathf.Atan2(delta.y,delta.x)*Mathf.Rad2Deg-90,Vector3.forward);
+                transform.rotation = Quaternion.AngleAxis(Mathf.Atan2(delta.y,delta.x)*Mathf.Rad2Deg-90,Vector3.forward);
             }
         }
+        public float Size { get; private set; } = 0.68f;
 
+        public float DistanceToNode(Node n)
+        {
+            if (Position.To == n) return Position.Distance;
+            else return Position.Link.Distance - Position.Distance;
+        }
+
+        #region 给Move函数用的
         /// <summary>
         /// 根据当前位置，获得应该前往的下一个连接
         /// </summary>
@@ -79,7 +89,6 @@ namespace Assets.Script
                     return orderedLinks[myLinkIndex + 1];
             }
         }
-
         private void MoveForward(float distance)
         {
             RoutePosition targetPosition = Position;
@@ -88,7 +97,8 @@ namespace Assets.Script
             {
                 if (Position.To.EndPic.activeSelf)
                 {//到达终点
-                    UnityEngine.Time.timeScale = 0;
+                    Time.timeScale = 0;
+                    Debug.Log("should stop");
                     Debug.Log("游戏结束：敌人到达终点");
                 }
                 else if (GameManager.SearchLinks(Position.To).Count == 1)
@@ -111,10 +121,64 @@ namespace Assets.Script
                 Position = targetPosition;
             }
         }
-
         public void MoveForward()
         {
             MoveForward(_moveDistance);
+        }
+
+        /// <summary>
+        /// 搜索所有挤压着我的人
+        /// </summary>
+        /// <param name="side">在我的那一侧？选填我所在连接的两个节点之一</param>
+        public List<Enemy> SearchAllTowardMeCrowding(Node side)
+        {
+            if (side != Position.Link.EndPoint1 && side != Position.Link.EndPoint2)
+            {
+                Time.timeScale = 0;
+                Debug.LogError("一个敌人尝试搜索临近人时，参数不是他两侧的节点");
+            }
+            
+            //获取连接上所有的敌人，按照距离side的距离排序
+            var enemiesOnLink = new List<Enemy>();
+            foreach (var e in GameManager.EnemiesList)
+            {
+                if(e.Position.Link==Position.Link)
+                    enemiesOnLink.Add(e);
+            }
+            enemiesOnLink.Sort((x,y)=>x.DistanceToNode(side)>y.DistanceToNode(side)?-1:1);
+            
+            //如果我是最靠近side的，就进行脱离人查找，反之就判断比我更靠近的那个人是否符合条件，进行递归查找
+            int myIndex = enemiesOnLink.FindIndex(x => x == this);
+            if (myIndex == 0)
+            {//需要进行脱离人的链接查找
+                Debug.LogError("还没有写的脱离人查找");
+                return new List<Enemy>{this};
+            }
+            else
+            {//查找比我更靠近side的那个人
+                var target = enemiesOnLink[myIndex - 1];
+                if (target.Position.To == side || DistanceToNode(side)-target.DistanceToNode(side)>Size+target.Size+0.5f)
+                {//那个人不面向我，或者他离我太远。结束查找
+                    return new List<Enemy>{this};
+                }
+                else
+                {//那个人面向我并且距离合适，即我们呈挤压状态。对他进行递归查找
+                    var preList = target.SearchAllTowardMeCrowding(side);
+                    preList.Add(this);
+                    return preList;
+                }
+            }
+        }
+
+        #endregion
+
+        public void Move()
+        {
+            //情况检测，判断使用哪一种move函数
+            foreach (var enemy in GameManager.EnemiesList)
+            {//查找自己的对面每一个面向自己的敌人
+                
+            }
         }
 
         void Init()
@@ -122,28 +186,17 @@ namespace Assets.Script
             _smallPic = transform.Find("EnemySmall").gameObject;
             _bigPic = transform.Find("EnemyBig").gameObject;
         }
-
-        // Start is called before the first frame update
-        void Start()
-        {
-        
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        
-        }
-
         public void BecomeBig()
         {
             BigPic.SetActive(true);
             SmallPic.SetActive(false);
+            Size = BigSize;
         }
         public void BecomeSmall()
         {
             BigPic.SetActive(false);
             SmallPic.SetActive(true);
+            Size = SmallSize;
         }
     }
 }

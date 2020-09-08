@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unity.UIWidgets.foundation;
 using UnityEngine;
 
 namespace Assets.Script
@@ -6,7 +7,8 @@ namespace Assets.Script
     public class GameManager : MonoBehaviour
     {
         public static List<Link> LinkList { get; private set; }
-        private Enemy _e;
+        public static List<Enemy> EnemiesList { get; private set; } = new List<Enemy>();
+
         void Start()
         {
             Node begin = Factory.CreatNode(new Vector2(-6.44f, 2.91f));
@@ -27,13 +29,39 @@ namespace Assets.Script
             };
             
             RoutePosition r = new RoutePosition(LinkList[0],node0,0);
-            _e = Factory.CreatEnemy(r);
+            EnemiesList.Add(Factory.CreatEnemy(r)); 
         }
 
         // Update is called once per frame
+        void FixedUpdate()
+        {
+            Time.timeScale = 5;
+            if (EnemiesList.last().Position.Distance>=EnemiesList.last().Size+Enemy.SmallSize)
+            {
+                RoutePosition r = new RoutePosition(LinkList[0],LinkList[0].EndPoint2,0);
+                var e = Factory.CreatEnemy(r);
+                e.BecomeSmall();
+                EnemiesList.Add(e); 
+            }
+
+            foreach (var e in EnemiesList)
+            {
+                e.MoveForward();
+            }
+        }
+
         void Update()
         {
-            _e.MoveForward();
+            if (Input.anyKey)
+            {
+                var link = EnemiesList[3].Position.Link;
+                var result =EnemiesList[3].SearchAllTowardMeCrowding(link.GetNodeBeside(EnemiesList[3].Position.To));
+                foreach (var e in result)
+                {
+                    e.BecomeBig();
+                    Time.timeScale = 0;
+                }
+            }
         }
 
         public static List<Link> SearchLinks(Node node)

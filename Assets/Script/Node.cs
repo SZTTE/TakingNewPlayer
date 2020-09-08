@@ -36,7 +36,6 @@ namespace Assets.Script
 
         private void Init()
         {
-            Debug.Log("init");
             _beginPic = transform.Find("RelocateBegin").gameObject;
             _endPic = transform.Find("RelocateEnd").gameObject;
             _normalPic = transform.Find("RelocateNormal").gameObject;
