@@ -55,7 +55,7 @@ namespace Assets.Script
             if (Input.anyKey)
             {
                 var link = EnemiesList[3].Position.Link;
-                var result =EnemiesList[3].SearchAllTowardMeCrowding(link.GetNodeBeside(EnemiesList[3].Position.To));
+                var result =EnemiesList[3].SearchAllCrowding(link.GetNodeBeside(EnemiesList[3].Position.To));
                 foreach (var e in result)
                 {
                     e.BecomeBig();
