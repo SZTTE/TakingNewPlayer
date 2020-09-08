@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.UIWidgets.foundation;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
@@ -13,10 +14,9 @@ namespace Assets.Script
         private GameObject _bigPic;
         private RoutePosition _routePosition;
         private float _moveDistance = 0.01f;
-        private float _touchDistance = 0.5f;//两个人检测接触时，在他们之间隔着这个距离也算作接触
+        private float _touchDistance = 0.1f;//两个人检测接触时，在他们之间隔着这个距离也算作接触
         public static float BigSize { get; } = 0.43f;
         public static float SmallSize { get; } = 0.25f;
-
         private GameObject SmallPic 
         {
             get
@@ -33,7 +33,6 @@ namespace Assets.Script
                 return _bigPic;
             }
         }
-
         public RoutePosition Position
         {
             get { return _routePosition;}
@@ -53,14 +52,14 @@ namespace Assets.Script
                 transform.rotation = Quaternion.AngleAxis(Mathf.Atan2(delta.y,delta.x)*Mathf.Rad2Deg-90,Vector3.forward);
             }
         }
-        public float Size { get; private set; } = 0.68f;
 
+        public Vector2 GlobalPosition { get => transform.position; }
+        public float Size { get; private set; } = 0.68f;
         public float DistanceToNode(Node n)
         {
-            if (Position.To == n) return Position.Distance;
-            else return Position.Link.Distance - Position.Distance;
+            if (Position.To == n) return Position.Link.Distance - Position.Distance;
+            else return Position.Distance;
         }
-
         #region 给Move函数用的
         /// <summary>
         /// 根据当前位置，获得应该前往的下一个连接
@@ -97,7 +96,6 @@ namespace Assets.Script
                 return GetPreLink(Position);
             }
         }
-
         public static Link GetPreLink(RoutePosition r)
         {
             //1.获取所有的另一端点
@@ -120,7 +118,6 @@ namespace Assets.Script
             else
                 return orderedLinks[myLinkIndex - 1];
         }
-
         private void MoveForward(float distance)
         {
             RoutePosition targetPosition = Position;
@@ -157,9 +154,8 @@ namespace Assets.Script
         {
             MoveForward(_moveDistance);
         }
-
         /// <summary>
-        /// 0最靠近side
+        /// 0距离side最远
         /// </summary>
         private static List<Enemy> GetOrderedEnemyBySide(Link link,Node side)
         {
@@ -172,7 +168,6 @@ namespace Assets.Script
             enemiesOnLink.Sort((x,y)=>x.DistanceToNode(side)>y.DistanceToNode(side)?-1:1);
             return enemiesOnLink;
         }
-
         /// <summary>
         /// 对某条链接从某个端点开始，展开长度为Distance的搜索，获取全部挤压着的敌人
         /// </summary>
@@ -181,6 +176,7 @@ namespace Assets.Script
             var enemiesOnLink = GetOrderedEnemyBySide(link, from);
             if (enemiesOnLink.Count == 0)
             {//路上没有敌人时，看这条路够不够长
+                Debug.Log("这条路上没有敌人");
                 if (link.Distance > distance)
                 {//长度足够，没有敌人就返回一个空list
                     return new List<Enemy>();
@@ -203,7 +199,7 @@ namespace Assets.Script
                 {//如果目标是小的：我们要对distance进行进一步减小。因为我们当初在设置distance时默认这个目标是大的
                     distance -= BigSize - SmallSize;
                 }
-                
+                Debug.Log("between"+from.Position+"and"+target.GlobalPosition+"is"+target.DistanceToNode(from));//
                 //真正开始判断目标是否离from端点足够近
                 if (target.DistanceToNode(from) <= distance)
                 {
@@ -217,7 +213,6 @@ namespace Assets.Script
                 }
             }
         }
-
         /// <summary>
         /// 搜索所有挤压着我的人
         /// </summary>
@@ -243,7 +238,7 @@ namespace Assets.Script
                 
                 //展开脱离人的查找
                 var targetLink = PreLink;
-                var preList = SearchAllCrowding(targetLink,Position.To,Size+BigSize-DistanceToNode(Position.To)+_touchDistance);
+                var preList = SearchAllCrowding(targetLink,Position.From,Size+BigSize-DistanceToNode(Position.To)+_touchDistance);
                 preList.Add(this);
                 return preList;
             }
@@ -262,9 +257,7 @@ namespace Assets.Script
                 }
             }
         }
-
         #endregion
-
         public void Move()
         {
             //情况检测，判断使用哪一种move函数
@@ -273,7 +266,6 @@ namespace Assets.Script
                 
             }
         }
-
         void Init()
         {
             _smallPic = transform.Find("EnemySmall").gameObject;
