@@ -8,7 +8,9 @@ namespace Assets.Script
     public class GameManager : MonoBehaviour
     {
         public static List<Link> LinkList { get; private set; }
-        public static List<Enemy> EnemiesList { get; private set; } = new List<Enemy>();
+        public static EnemyList EnemiesList { get; private set; } = new EnemyList();
+        public static int Frame { get; private set; } = 0;
+        public static Dictionary<int, int> FrameAndTimes { get; }=new Dictionary<int, int>();
 
         void Start()
         {
@@ -36,7 +38,9 @@ namespace Assets.Script
         // Update is called once per frame
         void FixedUpdate()
         {
-            Time.timeScale = 5;
+            Frame++;
+            FrameAndTimes[Frame] = 0;
+            Time.timeScale = 0.5f;
             if(test_shouldBorn)
                 if (EnemiesList.last().Position.Distance>=EnemiesList.last().Size+Enemy.SmallSize)
                 {
@@ -48,8 +52,9 @@ namespace Assets.Script
 
             foreach (var e in EnemiesList)
             {
-                e.MoveForward();
+                e.Move();
             }
+            Debug.Log(Frame+","+FrameAndTimes[Frame]);
         }
 
         private bool test_shouldBorn = true;
@@ -61,6 +66,7 @@ namespace Assets.Script
                 var result =EnemiesList[3].SearchAllCrowding(link.GetNodeBeside(EnemiesList[3].Position.To));
                 foreach (var e in result)
                 {
+                    Debug.Log("按下空格來使某些敵人變大");
                     e.BecomeBig();
                     Time.timeScale = 0;
                 }
@@ -68,6 +74,11 @@ namespace Assets.Script
             if (Input.GetKeyDown(KeyCode.K))
             {
                 test_shouldBorn = !test_shouldBorn;
+            }
+
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                EnemiesList[0].TurnAround();
             }
         }
 

@@ -10,11 +10,16 @@ namespace Assets.Script
 {
     public class Enemy : MonoBehaviour
     {
+        public enum EnemyTypeEnum
+        {
+            None,Small,Big
+        }
         private GameObject _smallPic;
         private GameObject _bigPic;
         private RoutePosition _routePosition;
-        private float _moveDistance = 0.01f;
-        private float _touchDistance = 0.1f;//两个人检测接触时，在他们之间隔着这个距离也算作接触
+        private float _moveDistance = 0.1f;
+        private float _touchDistance = 0.5f;//两个人检测接触时，在他们之间隔着这个距离也算作接触
+        private EnemyTypeEnum _type = EnemyTypeEnum.Big;
         public static float BigSize { get; } = 0.43f;
         public static float SmallSize { get; } = 0.25f;
         private GameObject SmallPic 
@@ -35,7 +40,7 @@ namespace Assets.Script
         }
         public RoutePosition Position
         {
-            get { return _routePosition;}
+            get => _routePosition;
             set
             {
                 //赋值
@@ -53,8 +58,33 @@ namespace Assets.Script
             }
         }
 
-        public Vector2 GlobalPosition { get => transform.position; }
+        public Vector2 GlobalPosition => transform.position;
         public float Size { get; private set; } = 0.68f;
+        public int PushingPriority { get; private set; } = 2;
+        public EnemyTypeEnum Type
+        {
+            get => _type;
+            set
+            {
+                _type = value;
+                switch (value)
+                {
+                    case EnemyTypeEnum.Big:
+                        BigPic.SetActive(true);
+                        SmallPic.SetActive(false);
+                        Size = BigSize;
+                        PushingPriority = 2;
+                        break;
+                    case EnemyTypeEnum.Small:
+                        BigPic.SetActive(false);
+                        SmallPic.SetActive(true);
+                        Size = SmallSize;
+                        PushingPriority = 1;
+                        break;
+                }
+            }
+        }
+
         public float DistanceToNode(Node n)
         {
             if (Position.To == n) return Position.Link.Distance - Position.Distance;
@@ -89,13 +119,8 @@ namespace Assets.Script
                     return orderedLinks[myLinkIndex + 1];
             }
         }
-        public Link PreLink
-        {
-            get
-            {
-                return GetPreLink(Position);
-            }
-        }
+        public Link PreLink => GetPreLink(Position);
+
         public static Link GetPreLink(RoutePosition r)
         {
             //1.获取所有的另一端点
@@ -150,16 +175,37 @@ namespace Assets.Script
                 Position = targetPosition;
             }
         }
-        public void MoveForward()
+        private void MoveForward()
         {
             MoveForward(_moveDistance);
         }
+
+        public void TurnAround()
+        {
+            var p = Position;
+            p.To = p.From;
+            p.Distance = p.Link.Distance - p.Distance;
+            Position = p;
+        }
+
+        private void MoveBack()
+        {
+            //掉头、向前走再掉头
+            TurnAround();
+            MoveForward(_moveDistance);
+            TurnAround();
+        }
+
+        private void MoveStop()
+        {
+        }
+
         /// <summary>
         /// 0距离side最远,last距离side最近
         /// </summary>
-        private static List<Enemy> GetOrderedEnemyBySide(Link link,Node side)
+        private static EnemyList GetOrderedEnemyBySide(Link link,Node side)
         {
-            var enemiesOnLink = new List<Enemy>();
+            var enemiesOnLink = new EnemyList();
             foreach (var e in GameManager.EnemiesList)
             {
                 if(e.Position.Link==link)
@@ -171,7 +217,7 @@ namespace Assets.Script
         /// <summary>
         /// 对某条链接从某个端点开始，展开长度为Distance的搜索，获取全部挤压着的敌人
         /// </summary>
-        public static List<Enemy> SearchAllCrowding(Link link, Node from, float distance)
+        public static EnemyList SearchAllCrowding(Link link, Node from, float distance)
         {
             var enemiesOnLink = GetOrderedEnemyBySide(link, from);
             if (enemiesOnLink.Count == 0)
@@ -179,13 +225,13 @@ namespace Assets.Script
                 Debug.Log("这条路上没有敌人");
                 if (link.Distance > distance)
                 {//长度足够，没有敌人就返回一个空list
-                    return new List<Enemy>();
+                    return new EnemyList();
                 }
                 else
                 {//长度不足，需要对下一条路径搜索。但有一个特殊情况
                     var linksOfNextNode = GameManager.SearchLinks(link.GetNodeBeside(from));
                     if(linksOfNextNode.Count==1)//特殊情况，下一条链接不存在
-                        return new List<Enemy>();
+                        return new EnemyList();
 
                     //正常情况：继续对下一条链接进行搜索
                     return SearchAllCrowding(GetPreLink(new RoutePosition(link, from, 0)), link.GetNodeBeside(from),
@@ -201,7 +247,7 @@ namespace Assets.Script
                 }
                 Debug.Log("between"+from.Position+"and"+target.GlobalPosition+"is"+target.DistanceToNode(from)+",And Search Distance is "+distance);//from是正确的，target是错误的，distance是正确的
                 //真正开始判断目标是否离from端点足够近
-                if (target.DistanceToNode(from) <= distance)
+                if (target.DistanceToNode(from) <= distance && target.Position.To == from)
                 {
                     var preList = target.SearchAllCrowding(link.GetNodeBeside(from));
                     preList.Add(target);
@@ -209,7 +255,7 @@ namespace Assets.Script
                 }
                 else
                 {
-                    return new List<Enemy>();
+                    return new EnemyList();
                 }
             }
         }
@@ -217,8 +263,9 @@ namespace Assets.Script
         /// 搜索所有挤压着我的人
         /// </summary>
         /// <param name="side">在我的那一侧？选填我所在连接的两个节点之一</param>
-        public List<Enemy> SearchAllCrowding(Node side)
+        public EnemyList SearchAllCrowding(Node side)
         {
+            GameManager.FrameAndTimes[GameManager.Frame]++;
             if (side != Position.Link.EndPoint1 && side != Position.Link.EndPoint2)
             {
                 Time.timeScale = 0;
@@ -234,7 +281,7 @@ namespace Assets.Script
             {//需要进行脱离人的链接查找，这里的算法还要实现搜索哪条路（如果那是一个末端节点，就截止搜索）
                 //检查来源是否是末端
                 var linkList = GameManager.SearchLinks(Position.From);
-                if(linkList.Count==1) return new List<Enemy>{this};
+                if(linkList.Count==1) return new EnemyList{this};
                 
                 //展开脱离人的查找
                 var targetLink = PreLink;
@@ -247,7 +294,7 @@ namespace Assets.Script
                 var target = enemiesOnLink[myIndex - 1];
                 if (target.Position.To == side || DistanceToNode(side)-target.DistanceToNode(side)>Size+target.Size+_touchDistance)
                 {//那个人不面向我，或者他离我太远。结束查找
-                    return new List<Enemy>{this};
+                    return new EnemyList{this};
                 }
                 else
                 {//那个人面向我并且距离合适，即我们呈挤压状态。对他进行递归查找
@@ -259,11 +306,27 @@ namespace Assets.Script
         }
         #endregion
         public void Move()
-        {
-            //情况检测，判断使用哪一种move函数
-            foreach (var enemy in GameManager.EnemiesList)
-            {//查找自己的对面每一个面向自己的敌人
-                
+        {//对每个敌人，都查找自己的对面每一个面向自己的敌人
+            //获取自己前面、自己后面（包括自己）的最大优先级
+            var enemiesAheadTowardMe = SearchAllCrowding(Position.To);
+            enemiesAheadTowardMe.Remove(this);
+            var highestAhead = enemiesAheadTowardMe.isEmpty()?0:enemiesAheadTowardMe.Biggest.PushingPriority;
+            var enemiesBehindTowardMe = SearchAllCrowding(Position.From);
+            enemiesBehindTowardMe.Add(this);
+            var highestBehind = enemiesBehindTowardMe.isEmpty()?0:enemiesBehindTowardMe.Biggest.PushingPriority;
+            Debug.Log("head="+enemiesAheadTowardMe.Count+"behind="+enemiesBehindTowardMe.Count);
+            if (highestAhead > highestBehind)
+            {//我应该向后
+                MoveBack();
+            }
+            else if (highestAhead==highestBehind)
+            {//我应该停止
+                Debug.Log("here");
+                MoveStop();
+            }
+            else
+            {//我应该前进
+                MoveForward();
             }
         }
         void Init()
@@ -273,15 +336,11 @@ namespace Assets.Script
         }
         public void BecomeBig()
         {
-            BigPic.SetActive(true);
-            SmallPic.SetActive(false);
-            Size = BigSize;
+            Type = EnemyTypeEnum.Big;
         }
         public void BecomeSmall()
         {
-            BigPic.SetActive(false);
-            SmallPic.SetActive(true);
-            Size = SmallSize;
+            Type = EnemyTypeEnum.Small;
         }
     }
 }

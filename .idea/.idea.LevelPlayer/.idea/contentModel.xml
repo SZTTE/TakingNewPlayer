@@ -6,6 +6,7 @@
       <e p="Assets" t="Include">
         <e p="Script" t="Include">
           <e p="Enemy.cs" t="Include" />
+          <e p="EnemyList.cs" t="Include" />
           <e p="Factory.cs" t="Include" />
           <e p="GameManager.cs" t="Include" />
           <e p="Link.cs" t="Include" />

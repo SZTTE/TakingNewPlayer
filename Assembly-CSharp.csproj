@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Script\Enemy.cs" />
+     <Compile Include="Assets\Script\EnemyList.cs" />
      <Compile Include="Assets\Script\Factory.cs" />
      <Compile Include="Assets\Script\GameManager.cs" />
      <Compile Include="Assets\Script\Link.cs" />
