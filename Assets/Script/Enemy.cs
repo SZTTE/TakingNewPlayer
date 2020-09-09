@@ -155,7 +155,7 @@ namespace Assets.Script
             MoveForward(_moveDistance);
         }
         /// <summary>
-        /// 0距离side最远
+        /// 0距离side最远,last距离side最近
         /// </summary>
         private static List<Enemy> GetOrderedEnemyBySide(Link link,Node side)
         {
@@ -194,12 +194,12 @@ namespace Assets.Script
             }
             else
             {//路上有敌人时，根据敌人类型判断是否接纳他
-                var target = enemiesOnLink[0];
+                var target = enemiesOnLink.Last();
                 if (target.Size == SmallSize)
                 {//如果目标是小的：我们要对distance进行进一步减小。因为我们当初在设置distance时默认这个目标是大的
                     distance -= BigSize - SmallSize;
                 }
-                Debug.Log("between"+from.Position+"and"+target.GlobalPosition+"is"+target.DistanceToNode(from));//
+                Debug.Log("between"+from.Position+"and"+target.GlobalPosition+"is"+target.DistanceToNode(from)+",And Search Distance is "+distance);//from是正确的，target是错误的，distance是正确的
                 //真正开始判断目标是否离from端点足够近
                 if (target.DistanceToNode(from) <= distance)
                 {
@@ -227,7 +227,7 @@ namespace Assets.Script
             
             //获取连接上所有的敌人，按照距离side的距离排序
             var enemiesOnLink = GetOrderedEnemyBySide(Position.Link,side);
-            
+            enemiesOnLink.Reverse();
             //如果我是最靠近side的，就进行脱离人查找，反之就判断比我更靠近的那个人是否符合条件，进行递归查找
             int myIndex = enemiesOnLink.FindIndex(x => x == this);
             if (myIndex == 0)
@@ -238,7 +238,7 @@ namespace Assets.Script
                 
                 //展开脱离人的查找
                 var targetLink = PreLink;
-                var preList = SearchAllCrowding(targetLink,Position.From,Size+BigSize-DistanceToNode(Position.To)+_touchDistance);
+                var preList = SearchAllCrowding(targetLink,Position.From,Size+BigSize-DistanceToNode(Position.From)+_touchDistance);
                 preList.Add(this);
                 return preList;
             }
