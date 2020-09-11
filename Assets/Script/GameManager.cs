@@ -8,7 +8,6 @@ namespace Assets.Script
     public class GameManager : MonoBehaviour
     {
         public static List<Link> LinkList { get; private set; }
-        public static EnemyList EnemiesList { get; private set; } = new EnemyList();
         public static int Frame { get; private set; } = 0;
         public static Dictionary<int, int> FrameAndTimes { get; }=new Dictionary<int, int>();
 
@@ -49,12 +48,7 @@ namespace Assets.Script
                     e.BecomeSmall();
                     EnemiesList.Add(e); 
                 }
-
-            foreach (var e in EnemiesList)
-            {
-                e.Move();
-            }
-            Debug.Log(Frame+","+FrameAndTimes[Frame]);
+            LoopEnemyMove();
         }
 
         private bool test_shouldBorn = true;
@@ -93,5 +87,22 @@ namespace Assets.Script
 
             return result;
         }
+
+        #region 敌人的管理
+        public static EnemyList EnemiesList { get; private set; } = new EnemyList();
+        /// <summary>
+        /// 每帧运行，处理敌人的移动
+        /// </summary>
+        private void LoopEnemyMove()
+        {
+            //一、设置所有敌人的前力后力
+            foreach (var e in EnemiesList)
+            {
+                if()
+            }
+            //二、
+        }
+
+        #endregion
     }
 }

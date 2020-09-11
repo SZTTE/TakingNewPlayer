@@ -12,21 +12,33 @@ namespace Assets.Script
     {
         public enum EnemyTypeEnum
         {
-            None,Small,Big
+            None,
+            Small,
+            Big
         }
+
+        public enum MoveEnum
+        {
+            None,
+            Forward,
+            Backward,
+            Stop
+        }
+
         private GameObject _smallPic;
         private GameObject _bigPic;
         private RoutePosition _routePosition;
         private float _moveDistance = 0.1f;
-        private float _touchDistance = 0.5f;//两个人检测接触时，在他们之间隔着这个距离也算作接触
+        private float _touchDistance = 0.5f; //两个人检测接触时，在他们之间隔着这个距离也算作接触
         private EnemyTypeEnum _type = EnemyTypeEnum.Big;
         public static float BigSize { get; } = 0.43f;
         public static float SmallSize { get; } = 0.25f;
-        private GameObject SmallPic 
+
+        private GameObject SmallPic
         {
             get
             {
-                if(_smallPic==null) Init();
+                if (_smallPic == null) Init();
                 return _smallPic;
             }
         }
@@ -34,7 +46,7 @@ namespace Assets.Script
         {
             get
             {
-                if(_bigPic==null) Init();
+                if (_bigPic == null) Init();
                 return _bigPic;
             }
         }
@@ -45,19 +57,20 @@ namespace Assets.Script
             {
                 //赋值
                 _routePosition = value;
-                
+
                 //设置位置
                 Vector2 to = _routePosition.To.Position;
                 Vector2 from = Position.Link.GetNodeBeside(Position.To).Position;
                 Vector2 delta = to - from;
                 if (_routePosition.Distance > delta.magnitude) Debug.LogError("有一个敌人被设置了错误的位置：距连接开头的距离大于连接的距离");
                 transform.position = from + delta.normalized * _routePosition.Distance;
-                
+
                 //设置朝向
-                transform.rotation = Quaternion.AngleAxis(Mathf.Atan2(delta.y,delta.x)*Mathf.Rad2Deg-90,Vector3.forward);
+                transform.rotation =
+                    Quaternion.AngleAxis(Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg - 90, Vector3.forward);
             }
         }
-
+        public Dictionary<int, MoveEnum> noDectectMovement { get; set; } = new Dictionary<int, MoveEnum>();//帧-》无检测行动
         public Vector2 GlobalPosition => transform.position;
         public float Size { get; private set; } = 0.68f;
         public int PushingPriority { get; private set; } = 2;
@@ -90,7 +103,6 @@ namespace Assets.Script
             if (Position.To == n) return Position.Link.Distance - Position.Distance;
             else return Position.Distance;
         }
-        #region 给Move函数用的
         /// <summary>
         /// 根据当前位置，获得应该前往的下一个连接
         /// </summary>
@@ -120,6 +132,29 @@ namespace Assets.Script
             }
         }
         public Link PreLink => GetPreLink(Position);
+        /// <summary>
+        /// 检索一个人的某个方向是否受到挤压
+        /// </summary>
+        /// <param name="side">1表示向前，-1表示向后</param>
+        /// <returns></returns>
+        private bool IsCrowded(int side)
+        {
+            //假设是向前搜索
+            
+        }
+
+        public bool CrowdedFront
+        {
+            get
+            {
+                
+            }
+        }
+
+        public bool CrowdedBack
+        {
+            get { }
+        }
 
         public static Link GetPreLink(RoutePosition r)
         {
@@ -143,6 +178,8 @@ namespace Assets.Script
             else
                 return orderedLinks[myLinkIndex - 1];
         }
+
+        #region 为Move服务
         private void MoveForward(float distance)
         {
             RoutePosition targetPosition = Position;
@@ -157,7 +194,7 @@ namespace Assets.Script
                 }
                 else if (GameManager.SearchLinks(Position.To).Count == 1)
                 {//到达末端
-                    Destroy(gameObject);
+                    Die();
                 }
                 else
                 {//通过一般末端
@@ -245,12 +282,10 @@ namespace Assets.Script
                 {//如果目标是小的：我们要对distance进行进一步减小。因为我们当初在设置distance时默认这个目标是大的
                     distance -= BigSize - SmallSize;
                 }
-                Debug.Log("between"+from.Position+"and"+target.GlobalPosition+"is"+target.DistanceToNode(from)+",And Search Distance is "+distance);//from是正确的，target是错误的，distance是正确的
                 //真正开始判断目标是否离from端点足够近
                 if (target.DistanceToNode(from) <= distance && target.Position.To == from)
                 {
                     var preList = target.SearchAllCrowding(link.GetNodeBeside(from));
-                    preList.Add(target);
                     return preList;
                 }
                 else
@@ -260,12 +295,11 @@ namespace Assets.Script
             }
         }
         /// <summary>
-        /// 搜索所有挤压着我的人
+        /// 搜索所有挤压着我的人,注意这个Search会搜索到自己！！
         /// </summary>
         /// <param name="side">在我的那一侧？选填我所在连接的两个节点之一</param>
         public EnemyList SearchAllCrowding(Node side)
         {
-            GameManager.FrameAndTimes[GameManager.Frame]++;
             if (side != Position.Link.EndPoint1 && side != Position.Link.EndPoint2)
             {
                 Time.timeScale = 0;
@@ -284,8 +318,10 @@ namespace Assets.Script
                 if(linkList.Count==1) return new EnemyList{this};
                 
                 //展开脱离人的查找
-                var targetLink = PreLink;
-                var preList = SearchAllCrowding(targetLink,Position.From,Size+BigSize-DistanceToNode(Position.From)+_touchDistance);
+                var myPos = Position;
+                myPos.To = myPos.Link.GetNodeBeside(side);
+                var targetLink = GetPreLink(myPos);
+                var preList = SearchAllCrowding(targetLink,side,Size+BigSize-DistanceToNode(Position.From)+_touchDistance);
                 preList.Add(this);
                 return preList;
             }
@@ -304,31 +340,71 @@ namespace Assets.Script
                 }
             }
         }
+        /*
+        /// <summary>
+        /// 如果有注定的行动方式，就直接行动
+        /// </summary>
+        public bool TryNoDetectMove()
+        {
+            if (noDectectMovement.ContainsKey(GameManager.Frame) == false) return false;
+            switch (noDectectMovement[GameManager.Frame])
+            {
+                case MoveEnum.Backward:
+                    MoveBack();
+                    break;
+                case MoveEnum.Forward:
+                    MoveForward();
+                    break;
+                case MoveEnum.Stop:
+                    MoveStop();
+                    break;
+            }
+
+            return true;
+
+        }*/
+
         #endregion
-        public void Move()
+        /*public void Move()
         {//对每个敌人，都查找自己的对面每一个面向自己的敌人
+            if (TryNoDetectMove()) return;//要是有注定的移动方式，就直接退出
             //获取自己前面、自己后面（包括自己）的最大优先级
             var enemiesAheadTowardMe = SearchAllCrowding(Position.To);
             enemiesAheadTowardMe.Remove(this);
             var highestAhead = enemiesAheadTowardMe.isEmpty()?0:enemiesAheadTowardMe.Biggest.PushingPriority;
             var enemiesBehindTowardMe = SearchAllCrowding(Position.From);
-            enemiesBehindTowardMe.Add(this);
             var highestBehind = enemiesBehindTowardMe.isEmpty()?0:enemiesBehindTowardMe.Biggest.PushingPriority;
-            Debug.Log("head="+enemiesAheadTowardMe.Count+"behind="+enemiesBehindTowardMe.Count);
             if (highestAhead > highestBehind)
             {//我应该向后
                 MoveBack();
+                foreach (var e in enemiesAheadTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Forward);
+                foreach (var e in enemiesBehindTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Backward);
             }
             else if (highestAhead==highestBehind)
             {//我应该停止
-                Debug.Log("here");
                 MoveStop();
+                foreach (var e in enemiesAheadTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Stop);
+                foreach (var e in enemiesBehindTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Stop);
             }
             else
             {//我应该前进
                 MoveForward();
+                Debug.Log("Im at"+GameManager.EnemiesList.FindIndex(x=>x==this)+","+enemiesBehindTowardMe.Count);
+                foreach (var e in enemiesBehindTowardMe)
+                {
+                    Debug.Log("inlist="+GameManager.EnemiesList.IndexOf(e));
+                }
+                foreach (var e in enemiesAheadTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Backward);
+                foreach (var e in enemiesBehindTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Forward);
             }
+        }*/
+
+        void Die()
+        {
+            GameManager.EnemiesList.Remove(this);
+            Destroy(gameObject);
         }
+
         void Init()
         {
             _smallPic = transform.Find("EnemySmall").gameObject;
