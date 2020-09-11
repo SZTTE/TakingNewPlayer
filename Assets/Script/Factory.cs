@@ -42,6 +42,7 @@ namespace Assets.Script
             GameObject enemy = GameObject.Instantiate(_enemy);
             Enemy script =  enemy.GetComponent<Enemy>();
             script.Position = routePosition;
+            script.BecomeBig();
             return script;
         }
     }

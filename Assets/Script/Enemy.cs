@@ -31,6 +31,7 @@ namespace Assets.Script
         private float _moveDistance = 0.1f;
         private float _touchDistance = 0.5f; //两个人检测接触时，在他们之间隔着这个距离也算作接触
         private EnemyTypeEnum _type = EnemyTypeEnum.Big;
+        private int _pushingPriority;
         public static float BigSize { get; } = 0.43f;
         public static float SmallSize { get; } = 0.25f;
         private GameObject SmallPic
@@ -72,7 +73,14 @@ namespace Assets.Script
         public Dictionary<int, MoveEnum> noDectectMovement { get; set; } = new Dictionary<int, MoveEnum>();//帧-》无检测行动
         public Vector2 GlobalPosition => transform.position;
         public float Size { get; private set; } = 0.68f;
-        public int PushingPriority { get; private set; } = 2;
+        public int PushingPriority
+        {
+            get=>_pushingPriority;
+            private set { 
+                ForwardExpectation = value;
+                _pushingPriority = value;
+            }
+        }
         public EnemyTypeEnum Type
         {
             get => _type;
@@ -326,6 +334,26 @@ namespace Assets.Script
             return true;
 
         }*/
+
+        #region 前进后退期望
+        private int ForwardExpectation { set; get; } = 0;//前进期望
+        private int BackwardExpectation { set; get; } = 0;//后退期望
+
+        public void SetAllExpectation()
+        {
+            SetAllExpectation(Position.To);
+        }
+
+        public void SetAllExpectation(Node side)
+        {
+            EnemyList next = SearchOneCrowding(side);
+            if (next[1] != null)//与我同条队列，前面的人
+            {
+                if()
+            }
+        }
+
+        #endregion
 
         #endregion
         /*public void Move()

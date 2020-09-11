@@ -104,7 +104,9 @@ namespace Assets.Script
             //一、设置所有敌人的前力后力
             foreach (var e in EnemiesList)
             {
-                e.MoveForward();
+                if (e.CrowdedFront && (!e.CrowdedBack))
+                {//对每个末端的人，向前开始运算它们的前进后退期望（递归）
+                }
             }
             //二、
         }
