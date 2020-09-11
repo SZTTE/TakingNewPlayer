@@ -33,7 +33,6 @@ namespace Assets.Script
         private EnemyTypeEnum _type = EnemyTypeEnum.Big;
         public static float BigSize { get; } = 0.43f;
         public static float SmallSize { get; } = 0.25f;
-
         private GameObject SmallPic
         {
             get
@@ -110,73 +109,35 @@ namespace Assets.Script
         {
             get
             {
-                //1.获取所有的另一端点
-                var links = GameManager.SearchLinks(Position.To);
-                var linkDic = new Dictionary<float,Link>();//根据角度排序的linkList
-                foreach (var link in links)//把每个节点都添加到linkDic里
-                {
-                    Node centerNode = Position.To;
-                    Node anotherNode;
-                    anotherNode = link.EndPoint1 == centerNode ? link.EndPoint2 : link.EndPoint1;
-                    Vector2 delta = anotherNode.Position - centerNode.Position;
-                    float angle = Mathf.Atan2(delta.y, delta.x);
-                    linkDic.Add(angle,link);
-                }
-                //获取已经排好序的linkDic，寻找靠右的节点（编号比原来的连接大一，如果不存在则取编号最小的）
-                var orderedLinks = linkDic.Values.ToList();
-                int myLinkIndex = orderedLinks.FindIndex(x=>x==Position.Link);
-                if (orderedLinks.Count - 1 == myLinkIndex) //我的链接是最后一个连接
-                    return orderedLinks[0];
-                else
-                    return orderedLinks[myLinkIndex + 1];
+                return GetNextLink(Position);
             }
         }
-        public Link PreLink => GetPreLink(Position);
-        /// <summary>
-        /// 检索一个人的某个方向是否受到挤压
-        /// </summary>
-        /// <param name="side">1表示向前，-1表示向后</param>
-        /// <returns></returns>
-        private bool IsCrowded(int side)
+        public static Link GetNextLink(RoutePosition r)
         {
-            //假设是向前搜索
-            
+            return r.To.RightSideOf(r.Link);
         }
-
+        public static Link GetPreLink(RoutePosition r)
+        {
+            return r.From.LeftSideOf(r.Link);
+        }
+        public Link PreLink => GetPreLink(Position);
         public bool CrowdedFront
         {
             get
             {
-                
+                var result = SearchOneCrowding(Position.To);
+                if (result[0] == null && result[1] == null && result[2] == null) return false;
+                else return true;
             }
         }
-
         public bool CrowdedBack
         {
-            get { }
-        }
-
-        public static Link GetPreLink(RoutePosition r)
-        {
-            //1.获取所有的另一端点
-            var links = GameManager.SearchLinks(r.Link.GetNodeBeside(r.To));
-            var linkDic = new Dictionary<float,Link>();//根据角度排序的linkList
-            foreach (var link in links)//把每个节点都添加到linkDic里
+            get
             {
-                Node centerNode = r.Link.GetNodeBeside(r.To);
-                Node anotherNode;
-                anotherNode = link.EndPoint1 == centerNode ? link.EndPoint2 : link.EndPoint1;
-                Vector2 delta = anotherNode.Position - centerNode.Position;
-                float angle = Mathf.Atan2(delta.y, delta.x);
-                linkDic.Add(angle,link);
+                var result = SearchOneCrowding(Position.From);
+                if (result[0] == null && result[1] == null && result[2] == null) return false;
+                else return true;
             }
-            //获取已经排好序的linkDic，寻找靠右的节点（编号比原来的连接大一，如果不存在则取编号最小的）
-            var orderedLinks = linkDic.Values.ToList();
-            int myLinkIndex = orderedLinks.FindIndex(x=>x==r.Link);
-            if (myLinkIndex==0) //我的链接是第一个连接
-                return orderedLinks.Last();
-            else
-                return orderedLinks[myLinkIndex - 1];
         }
 
         #region 为Move服务
@@ -212,11 +173,10 @@ namespace Assets.Script
                 Position = targetPosition;
             }
         }
-        private void MoveForward()
+        public void MoveForward()
         {
             MoveForward(_moveDistance);
         }
-
         public void TurnAround()
         {
             var p = Position;
@@ -224,7 +184,6 @@ namespace Assets.Script
             p.Distance = p.Link.Distance - p.Distance;
             Position = p;
         }
-
         private void MoveBack()
         {
             //掉头、向前走再掉头
@@ -232,7 +191,6 @@ namespace Assets.Script
             MoveForward(_moveDistance);
             TurnAround();
         }
-
         private void MoveStop()
         {
         }
@@ -254,43 +212,43 @@ namespace Assets.Script
         /// <summary>
         /// 对某条链接从某个端点开始，展开长度为Distance的搜索，获取全部挤压着的敌人
         /// </summary>
-        public static EnemyList SearchAllCrowding(Link link, Node from, float distance)
-        {
+        /// <return>搜索到的敌人，最多只能搜索到一个</return>
+        public static Enemy SearchOneCrowding(Link link, Node from, float distance)
+        {//放弃搜索道路时搜索到两条下路的情况
             var enemiesOnLink = GetOrderedEnemyBySide(link, from);
             if (enemiesOnLink.Count == 0)
             {//路上没有敌人时，看这条路够不够长
-                Debug.Log("这条路上没有敌人");
                 if (link.Distance > distance)
                 {//长度足够，没有敌人就返回一个空list
-                    return new EnemyList();
+                    return null;
                 }
                 else
                 {//长度不足，需要对下一条路径搜索。但有一个特殊情况
                     var linksOfNextNode = GameManager.SearchLinks(link.GetNodeBeside(from));
-                    if(linksOfNextNode.Count==1)//特殊情况，下一条链接不存在
-                        return new EnemyList();
+                    if (linksOfNextNode.Count == 1) //特殊情况，下一条链接不存在
+                        return null;
 
                     //正常情况：继续对下一条链接进行搜索
-                    return SearchAllCrowding(GetPreLink(new RoutePosition(link, from, 0)), link.GetNodeBeside(from),
+                    return SearchOneCrowding(GetPreLink(new RoutePosition(link, from, 0)), link.GetNodeBeside(from),
                         distance - link.Distance);
                 }
             }
             else
             {//路上有敌人时，根据敌人类型判断是否接纳他
                 var target = enemiesOnLink.Last();
-                if (target.Size == SmallSize)
+                if (Math.Abs(target.Size - SmallSize) < 1e-5)
                 {//如果目标是小的：我们要对distance进行进一步减小。因为我们当初在设置distance时默认这个目标是大的
                     distance -= BigSize - SmallSize;
                 }
                 //真正开始判断目标是否离from端点足够近
                 if (target.DistanceToNode(from) <= distance && target.Position.To == from)
                 {
-                    var preList = target.SearchAllCrowding(link.GetNodeBeside(from));
-                    return preList;
+                    var result = GetOrderedEnemyBySide(link, from).Last();
+                    return result;
                 }
                 else
                 {
-                    return new EnemyList();
+                    return null;
                 }
             }
         }
@@ -298,8 +256,10 @@ namespace Assets.Script
         /// 搜索所有挤压着我的人,注意这个Search会搜索到自己！！
         /// </summary>
         /// <param name="side">在我的那一侧？选填我所在连接的两个节点之一</param>
-        public EnemyList SearchAllCrowding(Node side)
+        /// <return>必定有三位，0左1中2右</return>
+        public EnemyList SearchOneCrowding(Node side)
         {
+            var result = new EnemyList() {null, null, null};
             if (side != Position.Link.EndPoint1 && side != Position.Link.EndPoint2)
             {
                 Time.timeScale = 0;
@@ -309,7 +269,7 @@ namespace Assets.Script
             //获取连接上所有的敌人，按照距离side的距离排序
             var enemiesOnLink = GetOrderedEnemyBySide(Position.Link,side);
             enemiesOnLink.Reverse();
-            //如果我是最靠近side的，就进行脱离人查找，反之就判断比我更靠近的那个人是否符合条件，进行递归查找
+            //如果我是最靠近side的，就进行脱离人查找，反之就判断比我更靠近的那个人是否符合条件
             int myIndex = enemiesOnLink.FindIndex(x => x == this);
             if (myIndex == 0)
             {//需要进行脱离人的链接查找，这里的算法还要实现搜索哪条路（如果那是一个末端节点，就截止搜索）
@@ -320,23 +280,26 @@ namespace Assets.Script
                 //展开脱离人的查找
                 var myPos = Position;
                 myPos.To = myPos.Link.GetNodeBeside(side);
-                var targetLink = GetPreLink(myPos);
-                var preList = SearchAllCrowding(targetLink,side,Size+BigSize-DistanceToNode(Position.From)+_touchDistance);
-                preList.Add(this);
-                return preList;
+                var targetLink = side.LeftSideOf(Position.Link);
+                var left = SearchOneCrowding(targetLink,side,Size+BigSize-DistanceToNode(side)+_touchDistance);
+                targetLink = side.RightSideOf(Position.Link);
+                var right = SearchOneCrowding(targetLink, side,
+                    Size + BigSize - DistanceToNode(side) + _touchDistance);
+                result[0] = left;
+                result[2] = right;
+                return result;
             }
             else
             {//查找比我更靠近side的那个人
                 var target = enemiesOnLink[myIndex - 1];
                 if (target.Position.To == side || DistanceToNode(side)-target.DistanceToNode(side)>Size+target.Size+_touchDistance)
                 {//那个人不面向我，或者他离我太远。结束查找
-                    return new EnemyList{this};
+                    return result;
                 }
                 else
                 {//那个人面向我并且距离合适，即我们呈挤压状态。对他进行递归查找
-                    var preList = target.SearchAllCrowding(side);
-                    preList.Add(this);
-                    return preList;
+                    result[1] = target;
+                    return result;
                 }
             }
         }

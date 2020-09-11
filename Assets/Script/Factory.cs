@@ -23,7 +23,7 @@ namespace Assets.Script
             return node.GetComponent<Node>();
         }
 
-        public static Link CreatLink()
+        private static Link CreatLink()
         {
             if (_link == null) Init();
             GameObject link = GameObject.Instantiate(_link);
@@ -32,8 +32,7 @@ namespace Assets.Script
         public static Link CreatLink(Node node1,Node node2)
         {
             Link l = CreatLink();
-            l.EndPoint1 = node1;
-            l.EndPoint2 = node2;
+            l.Init(node1,node2);
             return l;
         }
 

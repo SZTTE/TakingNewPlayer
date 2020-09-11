@@ -1,4 +1,4 @@
 sceneSetups:
-- path: "C:/_MK/GameDPM/2020\u62DB\u65B0/TakingNewPlayerDemo/Assets/Scenes/Start.unity"
+- path: Assets/Scenes/SampleScene.unity
   isLoaded: 1
   isActive: 1

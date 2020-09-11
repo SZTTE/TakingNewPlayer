@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Experimental.PlayerLoop;
 
 namespace Assets.Script
@@ -8,6 +10,7 @@ namespace Assets.Script
         private GameObject _beginPic;
         private GameObject _endPic;
         private GameObject _normalPic;
+        public Dictionary<float, Link> Links { get; } = new Dictionary<float, Link>();
 
         public GameObject BeginPic
         {
@@ -41,19 +44,6 @@ namespace Assets.Script
             _normalPic = transform.Find("RelocateNormal").gameObject;
         }
 
-        // Start is called before the first frame update
-        void Start()
-        {
-        }
-        
-        
-
-        // Update is called once per frame
-        void Update()
-        {
-        
-        }
-
         public Vector2 Position
         {
             get => transform.position;
@@ -77,6 +67,32 @@ namespace Assets.Script
             BeginPic.SetActive(false);
             EndPic.SetActive(false);
             NormalPic.SetActive(true);
+        }
+        public void RegisterLink(Link l)
+        {
+            Node centerNode = this;
+            Node anotherNode;
+            anotherNode = l.EndPoint1 == centerNode ? l.EndPoint2 : l.EndPoint1;
+            Vector2 delta = anotherNode.Position - centerNode.Position;
+            float angle = Mathf.Atan2(delta.y, delta.x);
+            Links.Add(angle,l);
+        }
+
+        public Link RightSideOf(Link l)
+        {
+            if (Links.Count <= 1) return null;
+            var ordered = Links.Values.ToList();
+            int lPosition = ordered.IndexOf(l);
+            if (lPosition == Links.Count-1) return ordered[0];
+            else return ordered[lPosition + 1];
+        }
+        public Link LeftSideOf(Link l)
+        {
+            if (Links.Count <= 1) return null;
+            var ordered = Links.Values.ToList();
+            int lPosition = ordered.IndexOf(l);
+            if (lPosition == 0) return ordered.Last();
+            else return ordered[lPosition - 1];
         }
     }
 }

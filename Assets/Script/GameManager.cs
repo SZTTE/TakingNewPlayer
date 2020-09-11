@@ -49,6 +49,11 @@ namespace Assets.Script
                     EnemiesList.Add(e); 
                 }
             LoopEnemyMove();
+            
+            //测试
+            var link = EnemiesList[3].Position.Link;
+            var result =EnemiesList[3].SearchOneCrowding(link.GetNodeBeside(EnemiesList[3].Position.To));
+            Debug.Log(result[2]);
         }
 
         private bool test_shouldBorn = true;
@@ -57,9 +62,10 @@ namespace Assets.Script
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 var link = EnemiesList[3].Position.Link;
-                var result =EnemiesList[3].SearchAllCrowding(link.GetNodeBeside(EnemiesList[3].Position.To));
+                var result =EnemiesList[3].SearchOneCrowding(link.GetNodeBeside(EnemiesList[3].Position.To));
                 foreach (var e in result)
                 {
+                    if (e == null) continue;
                     Debug.Log("按下空格來使某些敵人變大");
                     e.BecomeBig();
                     Time.timeScale = 0;
@@ -98,7 +104,7 @@ namespace Assets.Script
             //一、设置所有敌人的前力后力
             foreach (var e in EnemiesList)
             {
-                if()
+                e.MoveForward();
             }
             //二、
         }

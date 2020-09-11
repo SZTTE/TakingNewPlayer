@@ -6,6 +6,14 @@ namespace Assets.Script
 {
     public class EnemyList : List<Enemy>
     {
+        public EnemyList(int n):base(n)
+        {
+        }
+        public EnemyList():base()
+        {
+            
+        }
+
         public Enemy Biggest {
             get
             {
