@@ -28,8 +28,8 @@ namespace Assets.Script
         private GameObject _smallPic;
         private GameObject _bigPic;
         private RoutePosition _routePosition;
-        private float _moveDistance = 0.1f;
-        private float _touchDistance = 0.5f; //两个人检测接触时，在他们之间隔着这个距离也算作接触
+        private float _moveDistance = 0.01f;
+        private float _touchDistance = 0.1f; //两个人检测接触时，在他们之间隔着这个距离也算作接触
         private EnemyTypeEnum _type = EnemyTypeEnum.Big;
         private int _pushingPriority;
         public static float BigSize { get; } = 0.43f;
@@ -261,10 +261,8 @@ namespace Assets.Script
             }
         }
         /// <summary>
-        /// 搜索所有挤压着我的人,注意这个Search会搜索到自己！！
+        /// 获取我一侧的敌人，返回的链表0左1中2右，相应位置没有敌人则为null
         /// </summary>
-        /// <param name="side">在我的那一侧？选填我所在连接的两个节点之一</param>
-        /// <return>必定有三位，0左1中2右</return>
         public EnemyList SearchOneCrowding(Node side)
         {
             var result = new EnemyList() {null, null, null};
@@ -280,10 +278,10 @@ namespace Assets.Script
             //如果我是最靠近side的，就进行脱离人查找，反之就判断比我更靠近的那个人是否符合条件
             int myIndex = enemiesOnLink.FindIndex(x => x == this);
             if (myIndex == 0)
-            {//需要进行脱离人的链接查找，这里的算法还要实现搜索哪条路（如果那是一个末端节点，就截止搜索）
+            {//我是最靠近side的，需要进行脱离人的链接查找，这里的算法还要实现搜索哪条路（如果那是一个末端节点，就截止搜索）
                 //检查来源是否是末端
-                var linkList = GameManager.SearchLinks(Position.From);
-                if(linkList.Count==1) return new EnemyList{this};
+                var linkList = GameManager.SearchLinks(side);
+                if(linkList.Count==1) return result;
                 
                 //展开脱离人的查找
                 var myPos = Position;
@@ -338,6 +336,28 @@ namespace Assets.Script
         #region 前进后退期望
         private int ForwardExpectation { set; get; } = 0;//前进期望
         private int BackwardExpectation { set; get; } = 0;//后退期望
+        public void TrySetExpectation(MoveEnum move,int value)
+        {
+            if(move==MoveEnum.Forward)
+                if (value > ForwardExpectation)
+                    ForwardExpectation = value;
+            if(move==MoveEnum.Backward)
+                if (value > BackwardExpectation)
+                    BackwardExpectation = value;
+        }
+        public void TrySetExpectation(Node side,int value)
+        {
+            if(Position.To==side)
+                TrySetExpectation(MoveEnum.Forward,value);
+            else
+                TrySetExpectation(MoveEnum.Backward,value);
+        }
+
+        public int GetExpectation(Node side)
+        {
+            if (Position.To == side) return ForwardExpectation;
+            else return BackwardExpectation;
+        }
 
         public void SetAllExpectation()
         {
@@ -349,51 +369,50 @@ namespace Assets.Script
             EnemyList next = SearchOneCrowding(side);
             if (next[1] != null)//与我同条队列，前面的人
             {
-                if()
+                var n = next[1];
+                n.TrySetExpectation(side,GetExpectation(side));
+                n.SetAllExpectation(side);
             }
+            if (next[0] != null) //越过节点的左边队列
+            {
+                var n = next[0];
+                var nextSide = n.Position.Link.GetNodeBeside(side);//推力传导的方向
+                n.TrySetExpectation(nextSide, GetExpectation(side));
+                n.SetAllExpectation(nextSide);
+            }
+            if (next[2] != null) //同上右边
+            {
+                var n = next[2];
+                var nextSide = n.Position.Link.GetNodeBeside(side);//推力传导的方向
+                n.TrySetExpectation(nextSide, GetExpectation(side));
+                n.SetAllExpectation(nextSide);
+            }
+        }
+
+        public void ResetExpectation()
+        {
+            ForwardExpectation = PushingPriority;
+            BackwardExpectation = 0;
+        }
+
+        public void ReportMyExp()
+        {
+            Debug.Log("Enemy"+GameManager.EnemiesList.IndexOf(this)+", fw="+ForwardExpectation+", bk="+BackwardExpectation);
         }
 
         #endregion
 
         #endregion
-        /*public void Move()
-        {//对每个敌人，都查找自己的对面每一个面向自己的敌人
-            if (TryNoDetectMove()) return;//要是有注定的移动方式，就直接退出
-            //获取自己前面、自己后面（包括自己）的最大优先级
-            var enemiesAheadTowardMe = SearchAllCrowding(Position.To);
-            enemiesAheadTowardMe.Remove(this);
-            var highestAhead = enemiesAheadTowardMe.isEmpty()?0:enemiesAheadTowardMe.Biggest.PushingPriority;
-            var enemiesBehindTowardMe = SearchAllCrowding(Position.From);
-            var highestBehind = enemiesBehindTowardMe.isEmpty()?0:enemiesBehindTowardMe.Biggest.PushingPriority;
-            if (highestAhead > highestBehind)
-            {//我应该向后
-                MoveBack();
-                foreach (var e in enemiesAheadTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Forward);
-                foreach (var e in enemiesBehindTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Backward);
-            }
-            else if (highestAhead==highestBehind)
-            {//我应该停止
-                MoveStop();
-                foreach (var e in enemiesAheadTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Stop);
-                foreach (var e in enemiesBehindTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Stop);
-            }
-            else
-            {//我应该前进
-                MoveForward();
-                Debug.Log("Im at"+GameManager.EnemiesList.FindIndex(x=>x==this)+","+enemiesBehindTowardMe.Count);
-                foreach (var e in enemiesBehindTowardMe)
-                {
-                    Debug.Log("inlist="+GameManager.EnemiesList.IndexOf(e));
-                }
-                foreach (var e in enemiesAheadTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Backward);
-                foreach (var e in enemiesBehindTowardMe) e.noDectectMovement.Add(GameManager.Frame,MoveEnum.Forward);
-            }
-        }*/
+        public void Move()
+        {
+            if(BackwardExpectation<ForwardExpectation) MoveForward();
+            if(BackwardExpectation==ForwardExpectation) MoveStop();
+            if(BackwardExpectation>ForwardExpectation) MoveBack();
+        }
 
         void Die()
         {
-            GameManager.EnemiesList.Remove(this);
-            Destroy(gameObject);
+            GameManager.EnemiesToDelete.Add(this);
         }
 
         void Init()

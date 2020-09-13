@@ -80,7 +80,11 @@ namespace Assets.Script
 
         public Link RightSideOf(Link l)
         {
-            if (Links.Count <= 1) return null;
+            if (Links.Count <= 1)
+            {
+                Debug.LogError("别你妈搜了，没路了");
+                return null;
+            }
             var ordered = Links.Values.ToList();
             int lPosition = ordered.IndexOf(l);
             if (lPosition == Links.Count-1) return ordered[0];
@@ -88,7 +92,11 @@ namespace Assets.Script
         }
         public Link LeftSideOf(Link l)
         {
-            if (Links.Count <= 1) return null;
+            if (Links.Count <= 1)
+            {
+                Debug.LogError("别你妈搜了，没路了");
+                return null;
+            }
             var ordered = Links.Values.ToList();
             int lPosition = ordered.IndexOf(l);
             if (lPosition == 0) return ordered.Last();

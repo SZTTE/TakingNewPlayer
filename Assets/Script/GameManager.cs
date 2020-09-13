@@ -39,7 +39,7 @@ namespace Assets.Script
         {
             Frame++;
             FrameAndTimes[Frame] = 0;
-            Time.timeScale = 0.5f;
+            Time.timeScale = 5f;
             if(test_shouldBorn)
                 if (EnemiesList.last().Position.Distance>=EnemiesList.last().Size+Enemy.SmallSize)
                 {
@@ -80,6 +80,11 @@ namespace Assets.Script
             {
                 EnemiesList[0].TurnAround();
             }
+
+            if (Input.GetKeyDown(KeyCode.V))
+            {
+                EnemiesList[1].TurnAround();
+            }
         }
 
         public static List<Link> SearchLinks(Node node)
@@ -96,19 +101,44 @@ namespace Assets.Script
 
         #region 敌人的管理
         public static EnemyList EnemiesList { get; private set; } = new EnemyList();
+        public static EnemyList EnemiesToDelete { get; } = new EnemyList();
+
         /// <summary>
         /// 每帧运行，处理敌人的移动
         /// </summary>
         private void LoopEnemyMove()
         {
+            //零、充值所有敌人的期望
+            foreach (var e in EnemiesList)
+            {
+                e.ResetExpectation();
+            }
+            
             //一、设置所有敌人的前力后力
             foreach (var e in EnemiesList)
             {
                 if (e.CrowdedFront && (!e.CrowdedBack))
                 {//对每个末端的人，向前开始运算它们的前进后退期望（递归）
+                    e.SetAllExpectation();
                 }
             }
-            //二、
+
+            //二、让每个敌人根据自己的情况运动，应该被删掉的敌人会把自己放到EnemiesToDelete里
+            for(int i=0;i<EnemiesList.Count;i++)
+            {
+                if (EnemiesList[i] == null) continue;
+                EnemiesList[i].Move();
+            }
+            
+            //三、删掉刚才应该被删掉的敌人
+            foreach (var e in EnemiesToDelete)
+            {
+                if (EnemiesList.Contains(e))
+                {
+                    EnemiesList.Remove(e);
+                    Destroy(e.gameObject);
+                }
+            }
         }
 
         #endregion
