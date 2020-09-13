@@ -148,6 +148,35 @@ namespace Assets.Script
             }
         }
 
+        /// <summary>
+        /// 和前面一个人面对面
+        /// </summary>
+        public bool HasConflict{
+            get
+            {
+                bool noConflict = true;
+                var next = SearchOneCrowding(Position.To);
+                if (next[1] != null)
+                {
+                    if (next[1].Position.To == Position.From)
+                        noConflict = false;
+                }
+                if (next[0] != null)//左边的路有毗邻敌人
+                {
+                    if (next[0].Position.To == Position.To)
+                        noConflict = false;
+                }
+
+                if (next[2] != null)
+                {
+                    if (next[2].Position.To == Position.To)
+                        noConflict = false;
+                }
+
+                return !noConflict;
+            }
+        }
+
         #region 为Move服务
         private void MoveForward(float distance)
         {
@@ -249,7 +278,7 @@ namespace Assets.Script
                     distance -= BigSize - SmallSize;
                 }
                 //真正开始判断目标是否离from端点足够近
-                if (target.DistanceToNode(from) <= distance && target.Position.To == from)
+                if (target.DistanceToNode(from) <= distance)
                 {
                     var result = GetOrderedEnemyBySide(link, from).Last();
                     return result;
@@ -359,6 +388,8 @@ namespace Assets.Script
             else return BackwardExpectation;
         }
 
+        private static EnemyList SignBook { get; set; }//给下面两个函数用，递归头会生成一本签名书，递归尾会把它删掉
+
         public void SetAllExpectation()
         {
             SetAllExpectation(Position.To);
@@ -366,6 +397,16 @@ namespace Assets.Script
 
         public void SetAllExpectation(Node side)
         {
+            //防死循环：在书上签名，如果已经签过名了，就向上返回
+            bool thisIsRecurrenceHead = false;//这是递归头
+            if (SignBook == null)
+            {
+                SignBook = new EnemyList();
+                thisIsRecurrenceHead = true;
+            }
+            if (SignBook.Contains(this)) return;
+            else SignBook.Add(this);
+            
             EnemyList next = SearchOneCrowding(side);
             if (next[1] != null)//与我同条队列，前面的人
             {
@@ -382,11 +423,15 @@ namespace Assets.Script
             }
             if (next[2] != null) //同上右边
             {
+                //Debug.Log("发生了一次跨界点传递，我是"+GameManager.EnemiesList.IndexOf(this));
                 var n = next[2];
                 var nextSide = n.Position.Link.GetNodeBeside(side);//推力传导的方向
                 n.TrySetExpectation(nextSide, GetExpectation(side));
                 n.SetAllExpectation(nextSide);
             }
+            
+            //防死循环：如果我是最顶级递归，就把签名书删掉
+            if (thisIsRecurrenceHead) SignBook = null;
         }
 
         public void ResetExpectation()
