@@ -296,14 +296,14 @@ namespace Assets.Script
                 return result;
             }
             else
-            {//查找比我更靠近side的那个人
+            {//有人比我距离side更近，查找比我更靠近side的那个人
                 var target = enemiesOnLink[myIndex - 1];
-                if (target.Position.To == side || DistanceToNode(side)-target.DistanceToNode(side)>Size+target.Size+_touchDistance)
-                {//那个人不面向我，或者他离我太远。结束查找
+                if (DistanceToNode(side)-target.DistanceToNode(side)>Size+target.Size+_touchDistance)
+                {//如果那个更近的人他离我太远。结束查找
                     return result;
                 }
                 else
-                {//那个人面向我并且距离合适，即我们呈挤压状态。对他进行递归查找
+                {//那个人距离合适，即我们呈挤压状态。对他进行递归查找
                     result[1] = target;
                     return result;
                 }

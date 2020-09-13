@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.UIWidgets.foundation;
 using UnityEngine;
@@ -49,11 +50,6 @@ namespace Assets.Script
                     EnemiesList.Add(e); 
                 }
             LoopEnemyMove();
-            
-            //测试
-            var link = EnemiesList[3].Position.Link;
-            var result =EnemiesList[3].SearchOneCrowding(link.GetNodeBeside(EnemiesList[3].Position.To));
-            Debug.Log(result[2]);
         }
 
         private bool test_shouldBorn = true;
@@ -112,6 +108,7 @@ namespace Assets.Script
             foreach (var e in EnemiesList)
             {
                 e.ResetExpectation();
+                //Debug.Log("Im the last, FC="+EnemiesList.Last().CrowdedFront+", BC="+EnemiesList.Last().CrowdedBack);
             }
             
             //一、设置所有敌人的前力后力
@@ -120,6 +117,7 @@ namespace Assets.Script
                 if (e.CrowdedFront && (!e.CrowdedBack))
                 {//对每个末端的人，向前开始运算它们的前进后退期望（递归）
                     e.SetAllExpectation();
+                    Debug.Log("Im at end,Im"+EnemiesList.IndexOf(e));
                 }
             }
 
