@@ -12,6 +12,11 @@
           <e p="GameManager.cs" t="Include" />
           <e p="Link.cs" t="Include" />
           <e p="Node.cs" t="Include" />
+          <e p="Rocket" t="Include">
+            <e p="DrillRocket.cs" t="Include" />
+            <e p="ReturnRocket.cs" t="Include" />
+            <e p="RocketBase.cs" t="Include" />
+          </e>
           <e p="RoutePosition.cs" t="Include" />
         </e>
       </e>

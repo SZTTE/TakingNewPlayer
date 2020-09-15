@@ -454,7 +454,7 @@ namespace Assets.Script
             if(BackwardExpectation>ForwardExpectation) MoveBack();
         }
 
-        void Die()
+        public void Die()
         {
             GameManager.EnemiesToDelete.Add(this);
         }

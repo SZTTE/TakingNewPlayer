@@ -65,6 +65,9 @@
      <Compile Include="Assets\Script\GameManager.cs" />
      <Compile Include="Assets\Script\Link.cs" />
      <Compile Include="Assets\Script\Node.cs" />
+     <Compile Include="Assets\Script\Rocket\DrillRocket.cs" />
+     <Compile Include="Assets\Script\Rocket\ReturnRocket.cs" />
+     <Compile Include="Assets\Script\Rocket\RocketBase.cs" />
      <Compile Include="Assets\Script\RoutePosition.cs" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>C:/_MK/GameDPM/2020招新/LevelPlayer/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
