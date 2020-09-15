@@ -40,7 +40,7 @@ namespace Assets.Script
         {
             Frame++;
             FrameAndTimes[Frame] = 0;
-            Time.timeScale = 5f;
+            Time.timeScale = 1f;
             if(test_shouldBorn)
                 if (EnemiesList.last().Position.Distance>=EnemiesList.last().Size+Enemy.SmallSize)
                 {

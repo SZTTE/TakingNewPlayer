@@ -28,7 +28,7 @@ namespace Assets.Script
         private GameObject _smallPic;
         private GameObject _bigPic;
         private RoutePosition _routePosition;
-        private float _moveDistance = 0.01f;
+        private float _moveDistance = 0.05f;
         private float _touchDistance = 0.1f; //两个人检测接触时，在他们之间隔着这个距离也算作接触
         private EnemyTypeEnum _type = EnemyTypeEnum.Big;
         private int _pushingPriority;
@@ -70,7 +70,6 @@ namespace Assets.Script
                     Quaternion.AngleAxis(Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg - 90, Vector3.forward);
             }
         }
-        public Dictionary<int, MoveEnum> noDectectMovement { get; set; } = new Dictionary<int, MoveEnum>();//帧-》无检测行动
         public Vector2 GlobalPosition => transform.position;
         public float Size { get; private set; } = 0.68f;
         public int PushingPriority
