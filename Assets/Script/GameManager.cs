@@ -10,12 +10,12 @@ namespace Assets.Script
     public class GameManager : MonoBehaviour
     {
         public static List<Link> LinkList { get; private set; }
+        public static List<RocketBase> RocketList { get; private set; } = new List<RocketBase>();
         public static int Frame { get; private set; } = 0;
-        public static Dictionary<int, int> FrameAndTimes { get; }=new Dictionary<int, int>();
 
         void Start()
         {
-
+            Time.timeScale = 0f;
             Node begin = Factory.CreatNode(new Vector2(-6.44f, 2.91f));
             begin.BecomeBegin();
             Node end = Factory.CreatNode(new Vector2(4.43f,2.8f));
@@ -33,8 +33,6 @@ namespace Assets.Script
                 Factory.CreatLink(node0,end)
             };
 
-            var rr = Factory.CreatReturnRocket(new Vector2(-3, -3), new Vector2(1, 1));
-            
             RoutePosition r = new RoutePosition(LinkList[0],node0,0);
             EnemiesList.Add(Factory.CreatEnemy(r)); 
         }
@@ -43,8 +41,6 @@ namespace Assets.Script
         void FixedUpdate()
         {
             Frame++;
-            FrameAndTimes[Frame] = 0;
-            Time.timeScale = 1f;
             if(test_shouldBorn)
                 if (EnemiesList.last().Position.Distance>=EnemiesList.last().Size+Enemy.SmallSize)
                 {

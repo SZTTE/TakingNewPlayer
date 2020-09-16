@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using Assets.Script.Rocket;
 using Unity.DocZh.Components;
 using UnityEngine;
+using UnityEngine.UI;
 using Button = UnityEngine.UI.Button;
 
 namespace Assets.Script
@@ -11,6 +13,7 @@ namespace Assets.Script
         {
             AllDisable,
             AllAble,
+            OnGaming,
         }
         [SerializeField] private Button _startButton;
         [SerializeField] private Button _speedUpButton;
@@ -55,6 +58,16 @@ namespace Assets.Script
                             b.interactable = false;
                         }
                         break;
+                    case StateEnum.OnGaming:
+                        foreach (var b in ButtonList)
+                        {
+                            b.interactable = false;
+                        }
+                        Instance._speedUpButton.interactable = true;
+                        Instance._speedDownButton.interactable = true;
+                        Instance._startButton.interactable = true;
+                        Instance._startButton.GetComponentInChildren<Text>().text = "↙";
+                        break;
                 }
                 
             }
@@ -64,7 +77,30 @@ namespace Assets.Script
             Instance = this;
         }
 
-        
-        
+        void Start()
+        {
+            _drillRocketButton.onClick.AddListener(() =>
+            {
+                State = StateEnum.AllDisable;
+                var r = Factory.CreatDrillRocket();
+                r.SetByMouse();
+            });
+            _returnRocketButton.onClick.AddListener(() =>
+            {
+                State = StateEnum.AllDisable;
+                var r = Factory.CreatReturnRocket();
+                r.SetByMouse();
+            });
+            _startButton.onClick.AddListener(() =>
+            {
+                State = StateEnum.OnGaming;
+                Time.timeScale = 1f;
+                foreach (var r in GameManager.RocketList)
+                {
+                    r.StateMachine.State = RocketBase.StateEnum.ReadyToLaunch;
+                }
+            });
+        }
+
     }
 }

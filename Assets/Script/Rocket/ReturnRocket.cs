@@ -5,7 +5,7 @@ namespace Assets.Script.Rocket
     {
         void OnTriggerEnter2D(Collider2D col)
         {
-            if (!Launched) return;
+            if (StateMachine.State!=StateEnum.Flying) return;
             
             Enemy other = col.gameObject.GetComponent<Enemy>();
             if (other == null)
