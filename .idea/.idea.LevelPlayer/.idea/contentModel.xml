@@ -18,6 +18,7 @@
             <e p="RocketBase.cs" t="Include" />
           </e>
           <e p="RoutePosition.cs" t="Include" />
+          <e p="UIManager.cs" t="Include" />
         </e>
       </e>
       <e p="LevelPlayer.sln" t="IncludeFlat" />

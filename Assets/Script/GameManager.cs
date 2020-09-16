@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Assets.Script.Rocket;
 using TMPro;
 using Unity.UIWidgets.foundation;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace Assets.Script
 
         void Start()
         {
+
             Node begin = Factory.CreatNode(new Vector2(-6.44f, 2.91f));
             begin.BecomeBegin();
             Node end = Factory.CreatNode(new Vector2(4.43f,2.8f));
@@ -30,6 +32,8 @@ namespace Assets.Script
                 Factory.CreatLink(node1,node2),
                 Factory.CreatLink(node0,end)
             };
+
+            var rr = Factory.CreatReturnRocket(new Vector2(-3, -3), new Vector2(1, 1));
             
             RoutePosition r = new RoutePosition(LinkList[0],node0,0);
             EnemiesList.Add(Factory.CreatEnemy(r)); 
