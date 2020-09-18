@@ -36,7 +36,6 @@ namespace Assets.Script.Rocket
             {
                 float angle = Mathf.Atan2(value.y, value.x);
                 transform.rotation = Quaternion.AngleAxis(angle*Mathf.Rad2Deg-90,Vector3.forward);
-                Debug.Log("Set");
             }
         }
         public bool DottedLineVisible {set=> DottedLine.SetActive(value);}
@@ -62,7 +61,6 @@ namespace Assets.Script.Rocket
 
         protected RocketBase()
         {
-            GameManager.RocketList.Add(this);
             //初始化状态机
             StateMachine.RegisterAction(StateEnum.SettingPosition, () =>
             {
@@ -91,14 +89,14 @@ namespace Assets.Script.Rocket
             });
         }
 
-        void FixedUpdate()
+        void Start()
         {
+            GameManager.RocketList.Add(this);
         }
 
         void Update()
         {
             StateMachine.Run();
-            Debug.Log("My State is"+StateMachine.State);
         }
         public void SetByMouse()
         {

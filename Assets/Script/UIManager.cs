@@ -3,6 +3,7 @@ using System.Globalization;
 using Assets.Script.Rocket;
 using Unity.DocZh.Components;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Button = UnityEngine.UI.Button;
 
@@ -45,6 +46,10 @@ namespace Assets.Script
             }
         }
         public static float CustomTimeScale { get; private set; } = 1f;
+        public static string Instruction
+        {
+            set { Instance._instructionText.text = value; }
+        }
 
         public static StateEnum State
         {
@@ -69,11 +74,10 @@ namespace Assets.Script
                     case StateEnum.OnGaming:
                         foreach (var b in ButtonList)
                         {
-                            b.interactable = false;
+                            b.interactable = true;
                         }
-                        Instance._speedUpButton.interactable = true;
-                        Instance._speedDownButton.interactable = true;
-                        Instance._startButton.interactable = true;
+                        Instance._returnRocketButton.interactable = false;
+                        Instance._drillRocketButton.interactable = false;
                         Instance._startButton.GetComponentInChildren<Text>().text = "↙";
                         break;
                 }
@@ -105,9 +109,19 @@ namespace Assets.Script
                 GameManager.ReturnRocketUnused--;
             });
             _startButton.onClick.AddListener(() =>
-            {
-                State = StateEnum.OnGaming;
-                GameManager.GameStart();
+            {//在不同的游戏阶段，这个按钮有不同的作用
+                switch (GameManager.StateMachine.State)
+                {
+                    case GameManager.StateEnum.SettingRocket:
+                        State = StateEnum.OnGaming;
+                        GameManager.GameStart();
+                        _instructionText.text = "游戏开始！敌人正在赶到战场";
+                        break;
+                    default:
+                        SceneManager.LoadScene(0);
+                        break;
+                }
+                
             });
             _speedUpButton.onClick.AddListener(() =>
             {
@@ -130,12 +144,10 @@ namespace Assets.Script
         {
             ResetRocketText();
         }
-
         private void ResetRocketText()
         {
             _DrillRocketText.text = "钻头箭 x " + GameManager.DrillRocketUnused;
             _ReturnRocketText.text = "掉头箭 x " + GameManager.ReturnRocketUnused;
         }
-
     }
 }

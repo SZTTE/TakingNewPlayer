@@ -185,9 +185,7 @@ namespace Assets.Script
             {
                 if (Position.To.EndPic.activeSelf)
                 {//到达终点
-                    Time.timeScale = 0;
-                    Debug.Log("should stop");
-                    Debug.Log("游戏结束：敌人到达终点");
+                    GameManager.GameFail();
                 }
                 else if (GameManager.SearchLinks(Position.To).Count == 1)
                 {//到达末端
@@ -437,12 +435,6 @@ namespace Assets.Script
             ForwardExpectation = PushingPriority;
             BackwardExpectation = 0;
         }
-
-        public void ReportMyExp()
-        {
-            Debug.Log("Enemy"+GameManager.EnemiesList.IndexOf(this)+", fw="+ForwardExpectation+", bk="+BackwardExpectation);
-        }
-
         #endregion
 
         #endregion

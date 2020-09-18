@@ -18,12 +18,19 @@ namespace Assets.Script
             GameSuccess,
         }
 
-        public static StateMachine<StateEnum> StateMachine { get; set; } = new StateMachine<StateEnum>();
+        public static StateMachine<StateEnum> StateMachine { get; set; }
         public static List<Link> LinkList { get; private set; }
-        public static List<RocketBase> RocketList { get; private set; } = new List<RocketBase>();
+        public static List<RocketBase> RocketList { get; private set; }
         public static int Frame { get; private set; } = 0;
         public static int DrillRocketUnused { get; set; }
         public static int ReturnRocketUnused { get; set; }
+
+        GameManager()
+        {
+            StateMachine = new StateMachine<StateEnum>();
+            RocketList = new List<RocketBase>();
+            EnemiesList = new EnemyList();
+        }
 
         void Start()
         {
@@ -117,6 +124,11 @@ namespace Assets.Script
                     }
                 Time.timeScale = UIManager.CustomTimeScale;
                 LoopEnemyMove();
+                if (EnemiesList.isEmpty())
+                {
+                    StateMachine.State = StateEnum.GameSuccess;
+                    UIManager.Instruction = "游戏胜利:D";
+                }
             });
         }
 
@@ -130,8 +142,20 @@ namespace Assets.Script
             Time.timeScale = UIManager.CustomTimeScale;
         }
 
+        public static void GameFail()
+        {
+            if (StateMachine.State != StateEnum.OnPlaying)
+            {
+                Debug.LogError("游戏都没在玩，是谁调用这个函数啊？？");
+                return;
+            }
+            Time.timeScale = 0;
+            StateMachine.State = StateEnum.GameFail;
+            UIManager.Instruction = "游戏结束：敌人到达终点\n点右边的按钮重置关卡吧";
+        }
+
         #region 敌人的管理
-        public static EnemyList EnemiesList { get; private set; } = new EnemyList();
+        public static EnemyList EnemiesList { get; private set; }
         public static EnemyList EnemiesToDelete { get; } = new EnemyList();
 
         /// <summary>
