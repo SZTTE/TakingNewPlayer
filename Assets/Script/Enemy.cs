@@ -422,7 +422,6 @@ namespace Assets.Script
             }
             if (next[2] != null) //同上右边
             {
-                //Debug.Log("发生了一次跨界点传递，我是"+GameManager.EnemiesList.IndexOf(this));
                 var n = next[2];
                 var nextSide = n.Position.Link.GetNodeBeside(side);//推力传导的方向
                 n.TrySetExpectation(nextSide, GetExpectation(side));

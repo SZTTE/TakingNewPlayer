@@ -87,7 +87,7 @@ namespace Assets.Script.Rocket
             StateMachine.RegisterAction(StateEnum.Flying, () =>
             {
                 var orientation = transform.up;
-                transform.position += orientation * Speed;
+                transform.position += orientation * Speed*UIManager.CustomTimeScale;
             });
         }
 

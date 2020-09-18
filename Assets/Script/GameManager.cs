@@ -9,12 +9,27 @@ namespace Assets.Script
 {
     public class GameManager : MonoBehaviour
     {
+        public enum StateEnum
+        {
+            None,
+            SettingRocket,
+            OnPlaying,
+            GameFail,
+            GameSuccess,
+        }
+
+        public static StateMachine<StateEnum> StateMachine { get; set; } = new StateMachine<StateEnum>();
         public static List<Link> LinkList { get; private set; }
         public static List<RocketBase> RocketList { get; private set; } = new List<RocketBase>();
         public static int Frame { get; private set; } = 0;
+        public static int DrillRocketUnused { get; set; }
+        public static int ReturnRocketUnused { get; set; }
 
         void Start()
         {
+            DrillRocketUnused = 5;
+            ReturnRocketUnused = 2;
+            StateMachineInit();
             Time.timeScale = 0f;
             Node begin = Factory.CreatNode(new Vector2(-6.44f, 2.91f));
             begin.BecomeBegin();
@@ -40,16 +55,7 @@ namespace Assets.Script
         // Update is called once per frame
         void FixedUpdate()
         {
-            Frame++;
-            if(test_shouldBorn)
-                if (EnemiesList.last().Position.Distance>=EnemiesList.last().Size+Enemy.SmallSize)
-                {
-                    RoutePosition r = new RoutePosition(LinkList[0],LinkList[0].EndPoint2,0);
-                    var e = Factory.CreatEnemy(r);
-                    e.BecomeSmall();
-                    EnemiesList.Add(e); 
-                }
-            LoopEnemyMove();
+            StateMachine.Run();
         }
 
         private bool test_shouldBorn = true;
@@ -93,6 +99,35 @@ namespace Assets.Script
             }
 
             return result;
+        }
+
+        private void StateMachineInit()
+        {
+            StateMachine.State = StateEnum.SettingRocket;
+            StateMachine.RegisterAction(StateEnum.OnPlaying, () =>
+            {
+                Frame++;
+                if(test_shouldBorn)
+                    if (EnemiesList.last().Position.Distance>=EnemiesList.last().Size+Enemy.SmallSize)
+                    {
+                        RoutePosition r = new RoutePosition(LinkList[0],LinkList[0].EndPoint2,0);
+                        var e = Factory.CreatEnemy(r);
+                        e.BecomeSmall();
+                        EnemiesList.Add(e); 
+                    }
+                Time.timeScale = UIManager.CustomTimeScale;
+                LoopEnemyMove();
+            });
+        }
+
+        public static void GameStart()
+        {
+            StateMachine.State = StateEnum.OnPlaying;
+            foreach (var r in GameManager.RocketList)
+            {
+                r.StateMachine.State = RocketBase.StateEnum.ReadyToLaunch;
+            }
+            Time.timeScale = UIManager.CustomTimeScale;
         }
 
         #region 敌人的管理
