@@ -24,7 +24,7 @@ namespace Assets.Script
         public static int Frame { get; private set; } = 0;
         public static int DrillRocketUnused { get; set; }
         public static int ReturnRocketUnused { get; set; }
-
+        public static string LevelPath { get; set; }
         GameManager()
         {
             StateMachine = new StateMachine<StateEnum>();

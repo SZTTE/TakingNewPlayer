@@ -63,6 +63,8 @@
      <Compile Include="Assets\Script\EnemyManager.cs" />
      <Compile Include="Assets\Script\Factory.cs" />
      <Compile Include="Assets\Script\GameManager.cs" />
+     <Compile Include="Assets\Script\LevelSelect\LevelSelectManager.cs" />
+     <Compile Include="Assets\Script\LevelSelect\LevelText.cs" />
      <Compile Include="Assets\Script\Link.cs" />
      <Compile Include="Assets\Script\Node.cs" />
      <Compile Include="Assets\Script\Rocket\DrillRocket.cs" />
@@ -71,6 +73,21 @@
      <Compile Include="Assets\Script\RoutePosition.cs" />
      <Compile Include="Assets\Script\StateMachine.cs" />
      <Compile Include="Assets\Script\UIManager.cs" />
+     <None Include="Assets\Levels\1lalala - 副本 (5).xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (4) - 副本.xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (3) - 副本.xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (8) - 副本.xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (9) - 副本.xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (7) - 副本.xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (3).xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (6) - 副本.xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (2).xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (6).xml" />
+     <None Include="Assets\Levels\1lalala - 副本.xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (4).xml" />
+     <None Include="Assets\Levels\1lalala.xml" />
+     <None Include="Assets\Levels\1lalala - 副本 (5) - 副本.xml" />
+     <None Include="Assets\Levels\0.xml" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>C:/_MK/GameDPM/2020招新/LevelPlayer/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
  </Reference>

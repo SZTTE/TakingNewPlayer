@@ -91,7 +91,21 @@ namespace Assets.Script
 
         void Start()
         {
-            
+            ButtonsAddListener();
+        }
+        
+        void Update()
+        {
+            ResetRocketText();
+        }
+        private void ResetRocketText()
+        {
+            _DrillRocketText.text = "钻头箭 x " + GameManager.DrillRocketUnused;
+            _ReturnRocketText.text = "掉头箭 x " + GameManager.ReturnRocketUnused;
+        }
+
+        private void ButtonsAddListener()
+        {
             _drillRocketButton.onClick.AddListener(() =>
             {
                 if (GameManager.DrillRocketUnused == 0) return;
@@ -118,7 +132,7 @@ namespace Assets.Script
                         _instructionText.text = "游戏开始！敌人正在赶到战场";
                         break;
                     default:
-                        SceneManager.LoadScene(0);
+                        SceneManager.LoadScene("LevelPlayerScene");
                         break;
                 }
                 
@@ -136,18 +150,11 @@ namespace Assets.Script
                 CustomTimeScale /= 1.3f;
                 string timeStr = CustomTimeScale.ToString("F1");
                 _speedText.text = timeStr + "倍速";
-
             });
-        }
-        
-        void Update()
-        {
-            ResetRocketText();
-        }
-        private void ResetRocketText()
-        {
-            _DrillRocketText.text = "钻头箭 x " + GameManager.DrillRocketUnused;
-            _ReturnRocketText.text = "掉头箭 x " + GameManager.ReturnRocketUnused;
+            _exitButton.onClick.AddListener(() =>
+            {
+                SceneManager.LoadScene("LevelSelectScene");
+            });
         }
     }
 }

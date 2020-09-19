@@ -4,12 +4,33 @@
     <e p="C:\_MK\GameDPM\2020招新\LevelPlayer" t="IncludeRecursive">
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
+        <e p="Levels" t="Include">
+          <e p="0.xml" t="Include" />
+          <e p="1lalala - 副本 (2).xml" t="Include" />
+          <e p="1lalala - 副本 (3) - 副本.xml" t="Include" />
+          <e p="1lalala - 副本 (3).xml" t="Include" />
+          <e p="1lalala - 副本 (4) - 副本.xml" t="Include" />
+          <e p="1lalala - 副本 (4).xml" t="Include" />
+          <e p="1lalala - 副本 (5) - 副本.xml" t="Include" />
+          <e p="1lalala - 副本 (5).xml" t="Include" />
+          <e p="1lalala - 副本 (6) - 副本.xml" t="Include" />
+          <e p="1lalala - 副本 (6).xml" t="Include" />
+          <e p="1lalala - 副本 (7) - 副本.xml" t="Include" />
+          <e p="1lalala - 副本 (8) - 副本.xml" t="Include" />
+          <e p="1lalala - 副本 (9) - 副本.xml" t="Include" />
+          <e p="1lalala - 副本.xml" t="Include" />
+          <e p="1lalala.xml" t="Include" />
+        </e>
         <e p="Script" t="Include">
           <e p="Enemy.cs" t="Include" />
           <e p="EnemyList.cs" t="Include" />
           <e p="EnemyManager.cs" t="Include" />
           <e p="Factory.cs" t="Include" />
           <e p="GameManager.cs" t="Include" />
+          <e p="LevelSelect" t="Include">
+            <e p="LevelSelectManager.cs" t="Include" />
+            <e p="LevelText.cs" t="Include" />
+          </e>
           <e p="Link.cs" t="Include" />
           <e p="Node.cs" t="Include" />
           <e p="Rocket" t="Include">
