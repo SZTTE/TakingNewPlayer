@@ -22,11 +22,12 @@ namespace Assets.Script
             
         }
 
-        public static Node CreatNode(Vector2 position)
+        public static Node CreatNode(int id,Vector2 position)
         {
             if(_node == null) Init();
             GameObject node = Object.Instantiate(_node);
             node.transform.position = position;
+            GameManager.NodeDic.Add(id,node.GetComponent<Node>());
             return node.GetComponent<Node>();
         }
 

@@ -51,18 +51,22 @@ namespace Assets.Script
 
         public void BecomeBegin()
         {
+            GameManager.BeginNode = this;
             BeginPic.SetActive(true);
             EndPic.SetActive(false);
             NormalPic.SetActive(false);
         }
         public void BecomeEnd()
         {
+            GameManager.EndNode = this;
             BeginPic.SetActive(false);
             EndPic.SetActive(true);
             NormalPic.SetActive(false);
         }
         public void BecomeNormal()
         {
+            if (GameManager.BeginNode == this) GameManager.BeginNode = null;
+            if (GameManager.EndNode == this) GameManager.EndNode = null;
             BeginPic.SetActive(false);
             EndPic.SetActive(false);
             NormalPic.SetActive(true);

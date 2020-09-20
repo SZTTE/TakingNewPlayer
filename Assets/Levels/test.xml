@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<game>
+    <nodes>
+        <node id = "1">
+            <x>100</x>
+            <y>100</y>
+        </node>
+        <node id = "2">
+            <x>110</x>
+            <y>100</y>
+        </node>
+        <node id = "3">
+            <x>120</x>
+            <y>100</y>
+        </node>
+        <node id = "4"> 
+            <x>30</x>
+            <y>100</y>
+        </node>
+    </nodes>
+
+    <entrance>
+        <starpoint>1</starpoint>
+        <endpoint>4</endpoint>
+    </entrance>
+
+    <links>
+        <link>
+            <start>1</start>
+            <end>2</end>
+        </link>
+        <link>
+            <start>2</start>
+            <end>3</end>
+        </link>
+        <link>
+            <start>3</start>
+            <end>4</end>
+        </link>
+    </links>
+
+    <enemies>
+        <enemy type = "1"></enemy>
+        <enemy type = "5"></enemy>
+        <enemy type = "2"></enemy>
+        <enemy type = "1"></enemy>
+        <enemy type = "3"></enemy>
+        <enemy type = "1"></enemy>
+    </enemies>
+</game>

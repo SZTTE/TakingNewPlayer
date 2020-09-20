@@ -63,7 +63,7 @@ public class LevelSelectManager : MonoBehaviour
         float p = distance;
         i += distance;
         float d = distance - previous;
-        float speed = p*0.1f+i*0.06f+d*0.2f;
+        float speed = p*0.1f+i*0.03f+d*0.2f;
         _fileListTrans.anchoredPosition += speed * Vector2.up;
         previous = distance;
     }

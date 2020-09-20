@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 using Assets.Script.Rocket;
 using TMPro;
 using Unity.UIWidgets.foundation;
 using UnityEngine;
+using System.IO;
 
 namespace Assets.Script
 {
@@ -21,30 +24,43 @@ namespace Assets.Script
         public static StateMachine<StateEnum> StateMachine { get; set; }
         public static List<Link> LinkList { get; private set; }
         public static List<RocketBase> RocketList { get; private set; }
+        public static Dictionary<int, Node> NodeDic { get; private set; }
+        public static Queue<Enemy.EnemyTypeEnum> EnemyWaiting { get; private set; }
         public static int Frame { get; private set; } = 0;
         public static int DrillRocketUnused { get; set; }
         public static int ReturnRocketUnused { get; set; }
         public static string LevelPath { get; set; }
+        public static Node BeginNode { get; set; }
+        public static Node EndNode { get; set; }
+
         GameManager()
         {
             StateMachine = new StateMachine<StateEnum>();
             RocketList = new List<RocketBase>();
             EnemiesList = new EnemyList();
+            NodeDic = new Dictionary<int, Node>();
+            EnemyWaiting = new Queue<Enemy.EnemyTypeEnum>();
         }
 
         void Start()
+        {
+            SetMap();
+            
+        }
+
+        void Test_Start()
         {
             DrillRocketUnused = 5;
             ReturnRocketUnused = 2;
             StateMachineInit();
             Time.timeScale = 0f;
-            Node begin = Factory.CreatNode(new Vector2(-6.44f, 2.91f));
+            Node begin = Factory.CreatNode(0,new Vector2(-6.44f, 2.91f));
             begin.BecomeBegin();
-            Node end = Factory.CreatNode(new Vector2(4.43f,2.8f));
+            Node end = Factory.CreatNode(1,new Vector2(4.43f,2.8f));
             end.BecomeEnd();
-            Node node0 = Factory.CreatNode(new Vector2(-1.13f, 0.22f));
-            Node node1 = Factory.CreatNode(new Vector2(3.83f, -3.29f));
-            Node node2 = Factory.CreatNode(new Vector2(4, 0));
+            Node node0 = Factory.CreatNode(2,new Vector2(-1.13f, 0.22f));
+            Node node1 = Factory.CreatNode(3,new Vector2(3.83f, -3.29f));
+            Node node2 = Factory.CreatNode(4,new Vector2(4, 0));
             
             LinkList = new List<Link>
             {
@@ -65,7 +81,7 @@ namespace Assets.Script
             StateMachine.Run();
         }
 
-        private bool test_shouldBorn = true;
+        private bool test_shouldBorn = false;
         void Update()
         {
             if (Input.GetKeyDown(KeyCode.Space))
@@ -152,6 +168,84 @@ namespace Assets.Script
             Time.timeScale = 0;
             StateMachine.State = StateEnum.GameFail;
             UIManager.Instruction = "游戏结束：敌人到达终点\n点右边的按钮重置关卡吧";
+        }
+        async void Test_xmlReading()
+        {
+            Stream stream  = new FileStream(LevelPath,FileMode.Open);
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.Async = true;
+            settings.IgnoreWhitespace = true;
+
+            using (XmlReader reader = XmlReader.Create(stream, settings))
+            {
+                while (await reader.ReadAsync())
+                {
+                    switch (reader.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            Debug.Log($"Start Element {reader.Name}");
+                            break;
+                        case XmlNodeType.Text:
+                            Debug.Log($"Text Node: {await reader.GetValueAsync()}");
+                            break;
+                        case XmlNodeType.EndElement:
+                            Debug.Log($"End Element {reader.Name}");
+                            break;
+                        default:
+                            Debug.Log($"Other node {reader.NodeType} with value {reader.Value}");
+                            break;
+                    }
+                }
+            }
+        }
+        private void SetMap()
+        {
+            //一、设置读取器
+            Stream stream  = new FileStream(LevelPath,FileMode.Open);
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.Async = true;
+            settings.IgnoreWhitespace = true;
+            XmlReader reader = XmlReader.Create(stream, settings);
+            
+            //二、生成点
+            reader.ReadToFollowing("allnodes");
+            while (reader.NodeType != XmlNodeType.EndElement || reader.Name != "allnodes")
+            {//读取循环到结束节点为止
+                reader.ReadToFollowing("id");
+                int id = Convert.ToInt32(reader.ReadString());
+                reader.ReadToFollowing("x");
+                float x = Convert.ToSingle(reader.ReadString());
+                reader.ReadToFollowing("y");
+                float y = Convert.ToSingle(reader.ReadString());
+                Factory.CreatNode(id,new Vector2(x, y));
+                reader.ReadEndElement();
+                reader.ReadEndElement();
+            }
+            //设置起点终点
+            reader.ReadToFollowing("startnode");
+            reader.Read();
+            NodeDic[reader.ReadContentAsInt()].BecomeBegin();
+            reader.ReadToFollowing("endnode");
+            reader.Read();
+            NodeDic[reader.ReadContentAsInt()].BecomeEnd();
+            
+            //三、生成链接
+            while (reader.NodeType != XmlNodeType.EndElement || reader.Name != "links")
+            {
+                reader.ReadToFollowing("start");
+                reader.Read();
+                int start = reader.ReadContentAsInt();
+                reader.ReadToFollowing("end");
+                reader.Read();
+                int end = reader.ReadContentAsInt();
+                Factory.CreatLink(NodeDic[start], NodeDic[end]);
+                reader.ReadEndElement();
+                reader.ReadEndElement();
+            }
+            //四、设置敌人列表
+            
+            //五、生成既有火箭
+            //六、设置玩家可用火箭
         }
 
         #region 敌人的管理

@@ -92,6 +92,9 @@ namespace Assets.Script
         void Start()
         {
             ButtonsAddListener();
+            
+            string timeStr = CustomTimeScale.ToString("F1");
+            _speedText.text = timeStr + "倍速";
         }
         
         void Update()
