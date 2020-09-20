@@ -5,7 +5,6 @@
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
         <e p="Levels" t="Include">
-          <e p="0.xml" t="Include" />
           <e p="1lalala - 副本 (2).xml" t="Include" />
           <e p="1lalala - 副本 (3) - 副本.xml" t="Include" />
           <e p="1lalala - 副本 (3).xml" t="Include" />
@@ -20,8 +19,10 @@
           <e p="1lalala - 副本 (9) - 副本.xml" t="Include" />
           <e p="1lalala - 副本.xml" t="Include" />
           <e p="1lalala.xml" t="Include" />
+          <e p="Level1.xml" t="Include" />
           <e p="test(1).xml" t="Include" />
           <e p="test.xml" t="Include" />
+          <e p="啦啦啦.xml" t="Include" />
         </e>
         <e p="Script" t="Include">
           <e p="Enemy.cs" t="Include" />

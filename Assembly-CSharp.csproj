@@ -75,6 +75,7 @@
      <Compile Include="Assets\Script\UIManager.cs" />
      <None Include="Assets\Levels\1lalala - 副本 (5).xml" />
      <None Include="Assets\Levels\1lalala - 副本 (4) - 副本.xml" />
+     <None Include="Assets\Levels\啦啦啦.xml" />
      <None Include="Assets\Levels\1lalala - 副本 (3) - 副本.xml" />
      <None Include="Assets\Levels\1lalala - 副本 (8) - 副本.xml" />
      <None Include="Assets\Levels\1lalala - 副本 (9) - 副本.xml" />
@@ -89,7 +90,7 @@
      <None Include="Assets\Levels\1lalala - 副本 (4).xml" />
      <None Include="Assets\Levels\1lalala.xml" />
      <None Include="Assets\Levels\1lalala - 副本 (5) - 副本.xml" />
-     <None Include="Assets\Levels\0.xml" />
+     <None Include="Assets\Levels\Level1.xml" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>C:/_MK/GameDPM/2020招新/LevelPlayer/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
  </Reference>

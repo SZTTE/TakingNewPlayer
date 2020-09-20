@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
@@ -32,6 +33,21 @@ namespace Assets.Script
         public static string LevelPath { get; set; }
         public static Node BeginNode { get; set; }
         public static Node EndNode { get; set; }
+        private static Link _firstLink;
+        private static Link FirstLink {
+            get
+            {
+                if (_firstLink == null)
+                    foreach (var l in LinkList)
+                    {
+                        if (l.EndPoint1 == BeginNode || l.EndPoint2 == BeginNode)
+                            _firstLink = l;
+                    }
+
+                return _firstLink;
+            }
+        }
+        private static float _enemyPlacingDistance = 0.5f;
 
         GameManager()
         {
@@ -45,14 +61,14 @@ namespace Assets.Script
         void Start()
         {
             SetMap();
-            
+            StateMachineInit();
         }
 
         void Test_Start()
         {
             DrillRocketUnused = 5;
             ReturnRocketUnused = 2;
-            StateMachineInit();
+            
             Time.timeScale = 0f;
             Node begin = Factory.CreatNode(0,new Vector2(-6.44f, 2.91f));
             begin.BecomeBegin();
@@ -169,35 +185,6 @@ namespace Assets.Script
             StateMachine.State = StateEnum.GameFail;
             UIManager.Instruction = "游戏结束：敌人到达终点\n点右边的按钮重置关卡吧";
         }
-        async void Test_xmlReading()
-        {
-            Stream stream  = new FileStream(LevelPath,FileMode.Open);
-            XmlReaderSettings settings = new XmlReaderSettings();
-            settings.Async = true;
-            settings.IgnoreWhitespace = true;
-
-            using (XmlReader reader = XmlReader.Create(stream, settings))
-            {
-                while (await reader.ReadAsync())
-                {
-                    switch (reader.NodeType)
-                    {
-                        case XmlNodeType.Element:
-                            Debug.Log($"Start Element {reader.Name}");
-                            break;
-                        case XmlNodeType.Text:
-                            Debug.Log($"Text Node: {await reader.GetValueAsync()}");
-                            break;
-                        case XmlNodeType.EndElement:
-                            Debug.Log($"End Element {reader.Name}");
-                            break;
-                        default:
-                            Debug.Log($"Other node {reader.NodeType} with value {reader.Value}");
-                            break;
-                    }
-                }
-            }
-        }
         private void SetMap()
         {
             //一、设置读取器
@@ -242,10 +229,61 @@ namespace Assets.Script
                 reader.ReadEndElement();
                 reader.ReadEndElement();
             }
+            
             //四、设置敌人列表
+            while (reader.NodeType != XmlNodeType.EndElement || reader.Name != "enemies")
+            {
+                reader.ReadToFollowing("type");
+                reader.Read();
+                EnemyWaiting.Enqueue( (Enemy.EnemyTypeEnum)reader.ReadContentAsInt() );
+                reader.ReadEndElement();
+                reader.ReadEndElement();
+            }
             
             //五、生成既有火箭
+            while (reader.NodeType != XmlNodeType.EndElement || reader.Name != "allarrows")
+            {
+                reader.ReadToFollowing("type");
+                reader.Read();
+                int type = reader.ReadContentAsInt();
+                reader.ReadToFollowing("x");
+                reader.Read();
+                float x = reader.ReadContentAsFloat();
+                reader.ReadToFollowing("y");
+                reader.Read();
+                float y = reader.ReadContentAsFloat();
+                reader.ReadToFollowing("direction");
+                reader.Read();
+                float direction = reader.ReadContentAsFloat();
+                Vector2 position = new Vector2(x,y);
+                Vector2 dVector = new Vector2(Mathf.Cos(direction*Mathf.Deg2Rad+Mathf.PI/2), Mathf.Sin(direction*Mathf.Deg2Rad+Mathf.PI/2));
+                switch (type)
+                {
+                    case 0 :
+                        Factory.CreatDrillRocket(position, dVector);
+                        break;
+                    case 1 :
+                        Factory.CreatReturnRocket(position, dVector);
+                        break;
+                }
+
+                reader.ReadEndElement();
+                reader.ReadEndElement();
+            }
             //六、设置玩家可用火箭
+            reader.ReadToFollowing("attackarrow");
+            reader.Read();
+            DrillRocketUnused = reader.ReadContentAsInt();
+            reader.ReadToFollowing("returnarrow");
+            reader.Read();
+            ReturnRocketUnused= reader.ReadContentAsInt();
+            reader.Close();
+        }
+
+        private int _lastFrameSetEnemy = 0;
+        private void TrySetEnemyLoop()
+        {
+            if(Time.time-_lastFrameSetEnemy>Enemy._moveDistance/)//准备写创造新敌人的条件
         }
 
         #region 敌人的管理

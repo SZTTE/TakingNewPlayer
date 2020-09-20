@@ -28,7 +28,7 @@ namespace Assets.Script
         private GameObject _smallPic;
         private GameObject _bigPic;
         private RoutePosition _routePosition;
-        private float _moveDistance = 0.05f;
+        public static float _moveDistance = 0.05f;
         private float _touchDistance = 0.1f; //两个人检测接触时，在他们之间隔着这个距离也算作接触
         private EnemyTypeEnum _type = EnemyTypeEnum.Big;
         private int _pushingPriority;
