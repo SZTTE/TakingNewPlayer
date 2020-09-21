@@ -19,9 +19,15 @@
           <e p="1lalala - 副本 (9) - 副本.xml" t="Include" />
           <e p="1lalala - 副本.xml" t="Include" />
           <e p="1lalala.xml" t="Include" />
+          <e p="classic.xml" t="Include" />
+          <e p="extrame.xml" t="Include" />
+          <e p="learn.xml" t="Include" />
           <e p="Level1.xml" t="Include" />
+          <e p="tatat2.xml" t="Include" />
+          <e p="tatatat.xml" t="Include" />
           <e p="test(1).xml" t="Include" />
           <e p="test.xml" t="Include" />
+          <e p="testLevel.xml" t="Include" />
           <e p="啦啦啦.xml" t="Include" />
         </e>
         <e p="Script" t="Include">

@@ -43,14 +43,13 @@ namespace Assets.Script
                         if (l.EndPoint1 == BeginNode || l.EndPoint2 == BeginNode)
                         {
                             _firstLink = l;
-                            Debug.Log("找到第一条链接");
                         }
                     }
 
                 return _firstLink;
             }
         }
-        private static float _enemyPlacingFrame = 10;
+        private static float _enemyPlacingFrame = 15;
 
         GameManager()
         {
@@ -228,45 +227,49 @@ namespace Assets.Script
             }
             
             //四、设置敌人列表
-            while (reader.NodeType != XmlNodeType.EndElement || reader.Name != "enemies")
-            {
-                reader.ReadToFollowing("type");
-                reader.Read();
-                EnemyWaiting.Enqueue( (Enemy.EnemyTypeEnum)reader.ReadContentAsInt() );
-                reader.ReadEndElement();
-                reader.ReadEndElement();
-            }
+            reader.ReadToFollowing("enemies");
+            if (!reader.IsEmptyElement)
+                while (reader.NodeType != XmlNodeType.EndElement || reader.Name != "enemies")
+                {
+                    reader.ReadToFollowing("type");
+                    reader.Read();
+                    EnemyWaiting.Enqueue( (Enemy.EnemyTypeEnum)reader.ReadContentAsInt() );
+                    reader.ReadEndElement();
+                    reader.ReadEndElement();
+                }
             
             //五、生成既有火箭
-            while (reader.NodeType != XmlNodeType.EndElement || reader.Name != "allarrows")
-            {
-                reader.ReadToFollowing("type");
-                reader.Read();
-                int type = reader.ReadContentAsInt();
-                reader.ReadToFollowing("x");
-                reader.Read();
-                float x = reader.ReadContentAsFloat();
-                reader.ReadToFollowing("y");
-                reader.Read();
-                float y = reader.ReadContentAsFloat();
-                reader.ReadToFollowing("direction");
-                reader.Read();
-                float direction = reader.ReadContentAsFloat();
-                Vector2 position = new Vector2(x,y);
-                Vector2 dVector = new Vector2(Mathf.Cos(direction*Mathf.Deg2Rad+Mathf.PI/2), Mathf.Sin(direction*Mathf.Deg2Rad+Mathf.PI/2));
-                switch (type)
+            reader.ReadToFollowing("allarrows");
+            if (!reader.IsEmptyElement)
+                while (reader.NodeType != XmlNodeType.EndElement || reader.Name != "allarrows")
                 {
-                    case 0 :
-                        Factory.CreatDrillRocket(position, dVector);
-                        break;
-                    case 1 :
-                        Factory.CreatReturnRocket(position, dVector);
-                        break;
+                    reader.ReadToFollowing("type");
+                    reader.Read();
+                    int type = reader.ReadContentAsInt();
+                    reader.ReadToFollowing("x");
+                    reader.Read();
+                    float x = reader.ReadContentAsFloat();
+                    reader.ReadToFollowing("y");
+                    reader.Read();
+                    float y = reader.ReadContentAsFloat();
+                    reader.ReadToFollowing("direction");
+                    reader.Read();
+                    float direction = reader.ReadContentAsFloat();
+                    Vector2 position = new Vector2(x,y);
+                    Vector2 dVector = new Vector2(Mathf.Cos(direction*Mathf.Deg2Rad+Mathf.PI/2), Mathf.Sin(direction*Mathf.Deg2Rad+Mathf.PI/2));
+                    switch (type)
+                    {
+                        case 0 :
+                            Factory.CreatDrillRocket(position, dVector);
+                            break;
+                        case 1 :
+                            Factory.CreatReturnRocket(position, dVector);
+                            break;
+                    }
+                    
+                    reader.ReadEndElement();
+                    reader.ReadEndElement();
                 }
-
-                reader.ReadEndElement();
-                reader.ReadEndElement();
-            }
             //六、设置玩家可用火箭
             reader.ReadToFollowing("attackarrow");
             reader.Read();
