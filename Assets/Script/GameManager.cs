@@ -41,13 +41,16 @@ namespace Assets.Script
                     foreach (var l in LinkList)
                     {
                         if (l.EndPoint1 == BeginNode || l.EndPoint2 == BeginNode)
+                        {
                             _firstLink = l;
+                            Debug.Log("找到第一条链接");
+                        }
                     }
 
                 return _firstLink;
             }
         }
-        private static float _enemyPlacingDistance = 0.5f;
+        private static float _enemyPlacingFrame = 10;
 
         GameManager()
         {
@@ -56,6 +59,7 @@ namespace Assets.Script
             EnemiesList = new EnemyList();
             NodeDic = new Dictionary<int, Node>();
             EnemyWaiting = new Queue<Enemy.EnemyTypeEnum>();
+            LinkList = new List<Link>();
         }
 
         void Start()
@@ -146,17 +150,10 @@ namespace Assets.Script
             StateMachine.RegisterAction(StateEnum.OnPlaying, () =>
             {
                 Frame++;
-                if(test_shouldBorn)
-                    if (EnemiesList.last().Position.Distance>=EnemiesList.last().Size+Enemy.SmallSize)
-                    {
-                        RoutePosition r = new RoutePosition(LinkList[0],LinkList[0].EndPoint2,0);
-                        var e = Factory.CreatEnemy(r);
-                        e.BecomeSmall();
-                        EnemiesList.Add(e); 
-                    }
+                TrySetEnemyLoop();
                 Time.timeScale = UIManager.CustomTimeScale;
                 LoopEnemyMove();
-                if (EnemiesList.isEmpty())
+                if (EnemiesList.isEmpty()&& EnemyWaiting.isEmpty())
                 {
                     StateMachine.State = StateEnum.GameSuccess;
                     UIManager.Instruction = "游戏胜利:D";
@@ -283,7 +280,24 @@ namespace Assets.Script
         private int _lastFrameSetEnemy = 0;
         private void TrySetEnemyLoop()
         {
-            if(Time.time-_lastFrameSetEnemy>Enemy._moveDistance/)//准备写创造新敌人的条件
+            if (EnemyWaiting.isEmpty()) return;
+            if (Frame - _lastFrameSetEnemy > _enemyPlacingFrame) //准备写创造新敌人的条件
+            {
+                _lastFrameSetEnemy = Frame;
+                RoutePosition r = new RoutePosition(FirstLink,FirstLink.GetNodeBeside(BeginNode),0);
+                switch (EnemyWaiting.Dequeue())
+                {
+                    case Enemy.EnemyTypeEnum.Big:
+                        Factory.CreatEnemy(r);
+                        break;
+                    case Enemy.EnemyTypeEnum.Small:
+                        var e = Factory.CreatEnemy(r);
+                        e.BecomeSmall();
+                        break;
+                    case Enemy.EnemyTypeEnum.None:
+                        break;
+                }
+            }
         }
 
         #region 敌人的管理

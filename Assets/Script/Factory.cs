@@ -35,7 +35,9 @@ namespace Assets.Script
         {
             if (_link == null) Init();
             GameObject link = Object.Instantiate(_link);
-            return link.GetComponent<Link>();
+            var script = link.GetComponent<Link>();
+            GameManager.LinkList.Add(script);
+            return script;
         }
         public static Link CreatLink(Node node1,Node node2)
         {
@@ -50,6 +52,7 @@ namespace Assets.Script
             Enemy script =  enemy.GetComponent<Enemy>();
             script.Position = routePosition;
             script.BecomeBig();
+            GameManager.EnemiesList.Add(script);
             return script;
         }
         public static DrillRocket CreatDrillRocket()
